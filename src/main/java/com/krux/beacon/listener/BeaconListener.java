@@ -13,9 +13,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class BeaconListener implements Runnable {
-    
+
     private static final Logger log = LoggerFactory.getLogger(BeaconListener.class.getName());
-    
+
     private int _port;
     private List<String> _topics;
 
@@ -26,19 +26,17 @@ public class BeaconListener implements Runnable {
 
     @Override
     public void run() {
-        
+
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
             ServerBootstrap b = new ServerBootstrap();
-            b.group(bossGroup, workerGroup)
-             .channel(NioServerSocketChannel.class)
-             .handler(new LoggingHandler(LogLevel.INFO))
-             .childHandler(new BeaconListenerInitializer(_topics));
+            b.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class).handler(new LoggingHandler(LogLevel.INFO))
+                    .childHandler(new BeaconListenerInitializer(_topics));
 
             b.bind(_port).sync().channel().closeFuture().sync();
-        } catch ( Exception e ) {
-            log.error( "Error running listener server on " + _port, e );
+        } catch (Exception e) {
+            log.error("Error running listener server on " + _port, e);
         } finally {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
