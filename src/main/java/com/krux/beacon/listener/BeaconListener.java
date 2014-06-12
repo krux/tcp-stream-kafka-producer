@@ -4,8 +4,6 @@ import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
 
 import java.util.List;
 
@@ -32,7 +30,7 @@ public class BeaconListener implements Runnable {
         try {
             ServerBootstrap b = new ServerBootstrap();
             b.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class)
-                .childHandler(new BeaconListenerInitializer(_topics));
+                    .childHandler(new BeaconListenerInitializer(_topics));
 
             b.bind(_port).sync().channel().closeFuture().sync();
         } catch (Exception e) {

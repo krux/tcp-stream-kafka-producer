@@ -26,12 +26,16 @@ public class BeaconListenerServer {
         // handle a couple custom cli-params
         OptionParser parser = new OptionParser();
 
-        OptionSpec<String> portTopicMappings = parser.accepts("port.topic", "The port->topic mappings (ex: 1234:topic1[,topic2])").withOptionalArg()
-                .ofType(String.class);        
-        OptionSpec<String> kafkaBrokers = parser.accepts("metadata.broker.list", "A comma-delimitted list of kafka brokers in host:port format.").withOptionalArg()
-                .ofType(String.class).defaultsTo("localhost:9092");
-        OptionSpec<Integer> kafkaAckType = parser.accepts("request.required.acks", "The type of ack the broker will return to the client.  See https://kafka.apache.org/documentation.html#producerconfigs").withOptionalArg()
-                .ofType(Integer.class).defaultsTo( 1 );
+        OptionSpec<String> portTopicMappings = parser
+                .accepts("port.topic", "The port->topic mappings (ex: 1234:topic1[,topic2])").withOptionalArg()
+                .ofType(String.class);
+        OptionSpec<String> kafkaBrokers = parser
+                .accepts("metadata.broker.list", "A comma-delimitted list of kafka brokers in host:port format.")
+                .withOptionalArg().ofType(String.class).defaultsTo("localhost:9092");
+        OptionSpec<Integer> kafkaAckType = parser
+                .accepts("request.required.acks",
+                        "The type of ack the broker will return to the client.  See https://kafka.apache.org/documentation.html#producerconfigs")
+                .withOptionalArg().ofType(Integer.class).defaultsTo(1);
         OptionSpec<String> producerType = parser.accepts("producer.type", "'sync' or 'async'").withOptionalArg()
                 .ofType(String.class).defaultsTo("async");
 
@@ -55,31 +59,31 @@ public class BeaconListenerServer {
             }
             portToTopicsMap.put(port, topicList);
         }
-        
-        //these are picked up by the KafkaProducer class
-        System.setProperty( "metadata.broker.list", (String)optionMap.get(kafkaBrokers).get(0) );
-        System.setProperty( "request.required.acks", String.valueOf((Integer)optionMap.get(kafkaAckType).get(0)) );
-        System.setProperty( "producer.type", (String)optionMap.get(producerType).get(0) );
+
+        // these are picked up by the KafkaProducer class
+        System.setProperty("metadata.broker.list", (String) optionMap.get(kafkaBrokers).get(0));
+        System.setProperty("request.required.acks", String.valueOf((Integer) optionMap.get(kafkaAckType).get(0)));
+        System.setProperty("producer.type", (String) optionMap.get(producerType).get(0));
 
         // ok, mappings populated. Now, start tcp server on each port
         for (Map.Entry<Integer, List<String>> entry : portToTopicsMap.entrySet()) {
             StringBuilder sb = new StringBuilder();
-            for ( String topic : entry.getValue() ) {
-                sb.append( topic );
-                sb.append( ", " );
+            for (String topic : entry.getValue()) {
+                sb.append(topic);
+                sb.append(", ");
             }
-            log.info ( "Starting listener on port " + entry.getKey() + " for topics " + sb.toString() );
+            log.info("Starting listener on port " + entry.getKey() + " for topics " + sb.toString());
             BeaconListener listener = new BeaconListener(entry.getKey(), entry.getValue());
             Thread t = new Thread(listener);
             servers.add(t);
             t.start();
         }
-        
-        for ( Thread t : servers ) {
+
+        for (Thread t : servers) {
             try {
                 t.join();
             } catch (InterruptedException e) {
-                log.error( "Error after starting server", e );
+                log.error("Error after starting server", e);
             }
         }
 

@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.krux.beacon.listener.kafka.producer.KafkaProducer;
+import com.krux.stdlib.KruxStdLib;
 
 /**
  * Handles a server-side channel.
@@ -17,7 +18,7 @@ import com.krux.beacon.listener.kafka.producer.KafkaProducer;
 @Sharable
 public class BeaconListenerHandler extends SimpleChannelInboundHandler<String> {
 
-    private static final Logger log = LoggerFactory.getLogger(BeaconListenerServer.class.getName());
+    private static final Logger log = LoggerFactory.getLogger(BeaconListenerHandler.class.getName());
 
     private List<String> _topics;
 
@@ -28,17 +29,23 @@ public class BeaconListenerHandler extends SimpleChannelInboundHandler<String> {
     @Override
     public void channelRead0(ChannelHandlerContext ctx, String request) throws Exception {
 
+        long start = System.currentTimeMillis();
         // put message on each topic
         // list comes from ?
         // static map? List passed into constructor?
 
         // Generate and write a response.
-        log.info("Received message: " + request);
+        if (log.isDebugEnabled()) {
+            log.debug("Received message: " + request);
+        }
         for (String topic : _topics) {
             // push message to topic
-            log.info("  **Would place on topic: " + topic);
-            KafkaProducer.send( topic, request );
+            //log.info("  **Would place on topic: " + topic);
+            KafkaProducer.send(topic, request);
         }
+        
+        long time = System.currentTimeMillis() - start;
+        KruxStdLib.statsd.time( "beacon.listener.message", time );
 
         // String response;
         // boolean close = false;
@@ -71,6 +78,6 @@ public class BeaconListenerHandler extends SimpleChannelInboundHandler<String> {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         cause.printStackTrace();
-        //ctx.close();
+        // ctx.close();
     }
 }
