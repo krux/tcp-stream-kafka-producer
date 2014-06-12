@@ -9,6 +9,8 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.krux.beacon.listener.kafka.producer.KafkaProducer;
+
 /**
  * Handles a server-side channel.
  */
@@ -35,6 +37,7 @@ public class BeaconListenerHandler extends SimpleChannelInboundHandler<String> {
         for (String topic : _topics) {
             // push message to topic
             log.info("  **Would place on topic: " + topic);
+            KafkaProducer.send( topic, request );
         }
 
         // String response;
