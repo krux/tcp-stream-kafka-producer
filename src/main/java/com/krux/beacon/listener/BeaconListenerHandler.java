@@ -71,6 +71,6 @@ public class BeaconListenerHandler extends SimpleChannelInboundHandler<String> {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         cause.printStackTrace();
-        ctx.close();
+        //ctx.close();
     }
 }

@@ -31,8 +31,8 @@ public class BeaconListener implements Runnable {
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
             ServerBootstrap b = new ServerBootstrap();
-            b.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class).handler(new LoggingHandler(LogLevel.INFO))
-                    .childHandler(new BeaconListenerInitializer(_topics));
+            b.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class)
+                .childHandler(new BeaconListenerInitializer(_topics));
 
             b.bind(_port).sync().channel().closeFuture().sync();
         } catch (Exception e) {
