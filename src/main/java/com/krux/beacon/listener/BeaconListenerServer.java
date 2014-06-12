@@ -44,6 +44,7 @@ public class BeaconListenerServer {
         KruxStdLib.setOptionParser(parser);
         OptionSet options = KruxStdLib.initialize(args);
 
+        // parse the configured port -> topic mappings, put in global hashmap
         Map<OptionSpec<?>, List<?>> optionMap = options.asMap();
         List<?> portTopicMap = optionMap.get(portTopicMappings);
 
@@ -65,7 +66,8 @@ public class BeaconListenerServer {
         System.setProperty("request.required.acks", String.valueOf((Integer) optionMap.get(kafkaAckType).get(0)));
         System.setProperty("producer.type", (String) optionMap.get(producerType).get(0));
 
-        // ok, mappings populated. Now, start tcp server on each port
+        // ok, mappings and properties handled. Now, start tcp server on each
+        // port
         for (Map.Entry<Integer, List<String>> entry : portToTopicsMap.entrySet()) {
             StringBuilder sb = new StringBuilder();
             for (String topic : entry.getValue()) {
@@ -81,6 +83,9 @@ public class BeaconListenerServer {
 
         for (Thread t : servers) {
             try {
+                // unless something goes horribly wrong and doesn't get caught
+                // somewhere downstream, we'll never make it past the following
+                // line
                 t.join();
             } catch (InterruptedException e) {
                 log.error("Error after starting server", e);

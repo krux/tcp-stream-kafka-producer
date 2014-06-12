@@ -30,44 +30,19 @@ public class BeaconListenerHandler extends SimpleChannelInboundHandler<String> {
     public void channelRead0(ChannelHandlerContext ctx, String request) throws Exception {
 
         long start = System.currentTimeMillis();
-        // put message on each topic
-        // list comes from ?
-        // static map? List passed into constructor?
 
-        // Generate and write a response.
+        // All we do here is take the incoming message and plop it onto the
+        // configured kafka topic(s). Too easy
         if (log.isDebugEnabled()) {
             log.debug("Received message: " + request);
         }
         for (String topic : _topics) {
-            // push message to topic
-            //log.info("  **Would place on topic: " + topic);
             KafkaProducer.send(topic, request);
         }
-        
-        long time = System.currentTimeMillis() - start;
-        KruxStdLib.statsd.time( "beacon.listener.message", time );
 
-        // String response;
-        // boolean close = false;
-        // if (request.isEmpty()) {
-        // response = "Please type something.\r\n";
-        // } else if ("bye".equals(request.toLowerCase())) {
-        // response = "Have a good day!\r\n";
-        // close = true;
-        // } else {
-        // response = "Did you say '" + request + "'?\r\n";
-        // }
-        //
-        // // We do not need to write a ChannelBuffer here.
-        // // We know the encoder inserted at TelnetPipelineFactory will do the
-        // conversion.
-        // ChannelFuture future = ctx.write(response);
-        //
-        // // Close the connection after sending 'Have a good day!'
-        // // if the client has sent 'bye'.
-        // if (close) {
-        // future.addListener(ChannelFutureListener.CLOSE);
-        // }
+        long time = System.currentTimeMillis() - start;
+        KruxStdLib.statsd.time("beacon.listener.message", time);
+
     }
 
     @Override
@@ -77,7 +52,8 @@ public class BeaconListenerHandler extends SimpleChannelInboundHandler<String> {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        cause.printStackTrace();
+        log.error("Error during message handling", cause);
+        // cause.printStackTrace();
         // ctx.close();
     }
 }
