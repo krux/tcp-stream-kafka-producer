@@ -1,5 +1,7 @@
 package com.krux.beacon.listener;
 
+import java.util.List;
+
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
@@ -15,8 +17,12 @@ public class BeaconListenerInitializer extends ChannelInitializer<SocketChannel>
 
     private static final StringDecoder DECODER = new StringDecoder();
     private static final StringEncoder ENCODER = new StringEncoder();
+    
+    private List<String> _topics;
 
-    private static final BeaconListenerHandler SERVER_HANDLER = new BeaconListenerHandler();
+    public BeaconListenerInitializer(List<String> topics) {
+        _topics = topics;   
+    }
 
     @Override
     public void initChannel(SocketChannel ch) throws Exception {
@@ -29,6 +35,6 @@ public class BeaconListenerInitializer extends ChannelInitializer<SocketChannel>
         pipeline.addLast(ENCODER);
 
         // and then business logic.
-        pipeline.addLast(SERVER_HANDLER);
+        pipeline.addLast(new BeaconListenerHandler(_topics));
     }
 }
