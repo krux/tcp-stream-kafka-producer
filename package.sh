@@ -7,13 +7,13 @@ MY_DIR=$( dirname $0 )
 cd $MY_DIR
 
 ### Name of the package, project, etc
-NAME=krux-beacon-kafka-listener
+NAME=krux-kafka-stream-listener
 
 ### The directory that the build is done in
 TARGET=target
 
 ### List of files to package
-FILES=beacon-listener-full.jar
+FILES=kafka-stream-listener-full.jar
 
 ### package version
 ### XXX surely there's a maven command or something?
