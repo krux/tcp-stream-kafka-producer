@@ -14,9 +14,9 @@ import org.slf4j.LoggerFactory;
 
 import com.krux.stdlib.KruxStdLib;
 
-public class BeaconListenerServer {
+public class TCPStreamListenerServer {
 
-    private static final Logger log = LoggerFactory.getLogger(BeaconListenerServer.class.getName());
+    private static final Logger log = LoggerFactory.getLogger(TCPStreamListenerServer.class.getName());
 
     public static Map<Integer, List<String>> portToTopicsMap = new HashMap<Integer, List<String>>();
     public static List<Thread> servers = new ArrayList<Thread>();

@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.krux</groupId>
 	<artifactId>kafka-stream-listener</artifactId>
-	<version>0.1.2</version>
+	<version>0.1.3</version>
 
 	<build>
 		<plugins>
@@ -12,7 +12,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>com.krux.beacon.listener.BeaconListenerServer</mainClass>
+							<mainClass>com.krux.beacon.listener.TCPStreamListenerServer</mainClass>
 						</manifest>
 					</archive>
 					<descriptorRefs>
@@ -59,7 +59,7 @@
 		<dependency>
 			<groupId>com.krux</groupId>
 			<artifactId>krux-stdlib</artifactId>
-			<version>0.9.3</version>
+			<version>0.9.4</version>
 		</dependency>
 	</dependencies>
 
