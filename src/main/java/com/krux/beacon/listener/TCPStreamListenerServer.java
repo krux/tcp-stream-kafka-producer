@@ -21,7 +21,7 @@ public class TCPStreamListenerServer {
     public static Map<Integer, List<String>> portToTopicsMap = new HashMap<Integer, List<String>>();
     public static List<Thread> servers = new ArrayList<Thread>();
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
 
         // handle a couple custom cli-params
         OptionParser parser = new OptionParser();
@@ -168,6 +168,15 @@ public class TCPStreamListenerServer {
             } catch (InterruptedException e) {
                 log.error("Error after starting server", e);
             }
+        }
+        
+        //Jos doesn't want this thing to close even if no port mappings are specified. Hmm.
+        // for now, just hang indefinitely
+        if ( servers.size() <= 1 ) {
+            System.err.println( "No port.topic mappings were specified. If you must specify at least one port.topic cl option." );
+            do {
+                Thread.sleep( 1000 );
+            } while ( true );
         }
 
         System.out.println("Closed.");
