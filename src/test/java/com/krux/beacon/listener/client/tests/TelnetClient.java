@@ -25,14 +25,15 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
+import org.apache.commons.lang3.RandomStringUtils;
+
 /**
  * Simplistic telnet client.
  */
 public final class TelnetClient {
-
-    static final boolean SSL = System.getProperty("ssl") != null;
+    
     static final String HOST = System.getProperty("host", "127.0.0.1");
-    static final int PORT = Integer.parseInt(System.getProperty("port", SSL ? "8992" : "8023"));
+    static final int PORT = 32344;
 
     public static void main(String[] args) throws Exception {
 
@@ -46,24 +47,24 @@ public final class TelnetClient {
 
             // Read commands from the stdin.
             ChannelFuture lastWriteFuture = null;
-            BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-            for (;;) {
-                String line = in.readLine();
-                if (line == null) {
-                    break;
-                }
+            
+            for (int i = 0; i < 10000; i++ ) {
+                String line = RandomStringUtils.random(500, true, true);
 
                 // Sends the received line to the server.
                 lastWriteFuture = ch.writeAndFlush(line + "\r\n");
-
-                // If user typed the 'bye' command, wait until the server closes
-                // the connection.
-                if ("bye".equals(line.toLowerCase())) {
-                    ch.closeFuture().sync();
-                    break;
-                }
             }
+            
+            long start = System.currentTimeMillis();
+            for (int i = 0; i < 100000; i++ ) {
+                String line = RandomStringUtils.random(500, true, true);
 
+                // Sends the received line to the server.
+                lastWriteFuture = ch.writeAndFlush(line + "\r\n");
+            }
+            long time = System.currentTimeMillis() - start;
+
+           System.out.println( time );
             // Wait until all messages are flushed before closing the channel.
             if (lastWriteFuture != null) {
                 lastWriteFuture.sync();
