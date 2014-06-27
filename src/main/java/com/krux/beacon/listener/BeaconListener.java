@@ -6,6 +6,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +17,9 @@ public class BeaconListener implements Runnable {
 
     private int _port;
     private List<String> _topics;
+    private ServerBootstrap _b;
+    EventLoopGroup _bossGroup;
+    EventLoopGroup _workerGroup;
 
     public BeaconListener(Integer port, List<String> topics) {
         _port = port;
@@ -25,21 +29,26 @@ public class BeaconListener implements Runnable {
     @Override
     public void run() {
 
-        EventLoopGroup bossGroup = new NioEventLoopGroup(1);
-        EventLoopGroup workerGroup = new NioEventLoopGroup();
+        _bossGroup = new NioEventLoopGroup(1);
+        _workerGroup = new NioEventLoopGroup();
         try {
-            ServerBootstrap b = new ServerBootstrap();
-            b.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class)
+            _b = new ServerBootstrap();
+            _b.group(_bossGroup, _workerGroup).channel(NioServerSocketChannel.class)
                     .childHandler(new BeaconListenerInitializer(_topics));
 
-            b.bind(_port).sync().channel().closeFuture().sync();
+            _b.bind(_port).sync().channel().closeFuture().sync();
         } catch (Exception e) {
             log.error("Error running listener server on " + _port, e);
         } finally {
-            bossGroup.shutdownGracefully();
-            workerGroup.shutdownGracefully();
+            _bossGroup.shutdownGracefully();
+            _workerGroup.shutdownGracefully();
         }
 
+    }
+    
+    public void stop() {
+        _bossGroup.shutdownGracefully(100, 200, TimeUnit.MILLISECONDS);
+        _workerGroup.shutdownGracefully(100, 200, TimeUnit.MILLISECONDS);
     }
 
 }

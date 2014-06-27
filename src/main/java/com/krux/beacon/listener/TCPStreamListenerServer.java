@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
@@ -12,6 +14,8 @@ import joptsimple.OptionSpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.krux.beacon.listener.kafka.producer.ConnectionTestKafkaProducer;
+import com.krux.beacon.listener.kafka.producer.TestTimerTask;
 import com.krux.stdlib.KruxStdLib;
 
 public class TCPStreamListenerServer {
@@ -20,6 +24,9 @@ public class TCPStreamListenerServer {
 
     public static Map<Integer, List<String>> portToTopicsMap = new HashMap<Integer, List<String>>();
     public static List<Thread> servers = new ArrayList<Thread>();
+    
+    public static AtomicBoolean running = new AtomicBoolean(false);
+    private static Timer timer = null;
 
     public static void main(String[] args) throws InterruptedException {
 
@@ -143,31 +150,14 @@ public class TCPStreamListenerServer {
         System.setProperty("batch.num.messages", String.valueOf((Integer) optionMap.get(batchNumMessages).get(0)));
         System.setProperty("client.id", (String)  optionMap.get(clientId).get(0));
         System.setProperty("send.buffer.bytes", String.valueOf((Integer) optionMap.get(sendBufferBytes).get(0)));
-
-        // ok, mappings and properties handled. Now, start tcp server on each
-        // port
-        for (Map.Entry<Integer, List<String>> entry : portToTopicsMap.entrySet()) {
-            StringBuilder sb = new StringBuilder();
-            for (String topic : entry.getValue()) {
-                sb.append(topic);
-                sb.append(", ");
-            }
-            log.info("Starting listener on port " + entry.getKey() + " for topics " + sb.toString());
-            BeaconListener listener = new BeaconListener(entry.getKey(), entry.getValue());
-            Thread t = new Thread(listener);
-            servers.add(t);
-            t.start();
-        }
-
-        for (Thread t : servers) {
-            try {
-                // unless something goes horribly wrong and doesn't get caught
-                // somewhere downstream, we'll never make it past the following
-                // line
-                t.join();
-            } catch (InterruptedException e) {
-                log.error("Error after starting server", e);
-            }
+        
+        //start a timer that will check every N seconds to see if test messages can be sent to kafka
+        // if so, then start our listeners
+        try {
+            ConnectionTestKafkaProducer.sendTest();
+            startListeners();
+        } catch ( Exception e ) {
+            log.error( "Cannot start listeners", e );
         }
         
         //Jos doesn't want this thing to close even if no port mappings are specified. Hmm.
@@ -181,6 +171,49 @@ public class TCPStreamListenerServer {
 
         System.out.println("Closed.");
 
+    }
+
+    public static void startListeners() {
+        // ok, mappings and properties handled. Now, start tcp server on each
+        // port
+
+        if ( !TCPStreamListenerServer.running.get() ) {
+            List<BeaconListener> listeners = new ArrayList<BeaconListener>();
+            
+            for (Map.Entry<Integer, List<String>> entry : portToTopicsMap.entrySet()) {
+                StringBuilder sb = new StringBuilder();
+                for (String topic : entry.getValue()) {
+                    sb.append(topic);
+                    sb.append(", ");
+                }
+                log.info("Starting listener on port " + entry.getKey() + " for topics " + sb.toString());
+                BeaconListener listener = new BeaconListener(entry.getKey(), entry.getValue());
+                listeners.add( listener );
+                Thread t = new Thread(listener);
+                servers.add(t);
+                t.start();
+            }
+            
+            TCPStreamListenerServer.running.set( true );
+            
+            //start a timer that will check if everything's kosher
+            if ( timer == null ) {
+                timer = new Timer();
+                TestTimerTask tt = new TestTimerTask( listeners );
+                timer.schedule( tt, 5000, 1000 );
+            }
+            
+            for (Thread t : servers) {
+                try {
+                    // unless something goes horribly wrong and doesn't get caught
+                    // somewhere downstream, we'll never make it past the following
+                    // line
+                    t.join();
+                } catch (InterruptedException e) {
+                    log.error("Error after starting server", e);
+                }
+            }
+        }
     }
 
 }

@@ -2,6 +2,11 @@ package com.krux.beacon.listener.kafka.producer;
 
 import java.util.Properties;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.krux.beacon.listener.TCPStreamListenerServer;
+
 import kafka.javaapi.producer.Producer;
 import kafka.producer.KeyedMessage;
 import kafka.producer.ProducerConfig;
@@ -9,6 +14,8 @@ import kafka.producer.ProducerConfig;
 public class ConnectionTestKafkaProducer {
 
     private static Producer<String, String> producer;
+    
+    private static final Logger log = LoggerFactory.getLogger(ConnectionTestKafkaProducer.class.getName());
 
     static {
 
@@ -20,19 +27,15 @@ public class ConnectionTestKafkaProducer {
         props.put("serializer.class", System.getProperty("serializer.class", "kafka.serializer.StringEncoder"));
         props.put("partitioner.class",
                 System.getProperty("partitioner.class", "com.krux.beacon.listener.kafka.producer.SimplePartitioner"));
-        props.put("producer.type", System.getProperty("producer.type", "sync"));
+        props.put("producer.type", "sync");
 
         ProducerConfig config = new ProducerConfig(props);
         producer = new Producer<String, String>(config);
 
     }
 
-    public static void send() {
+    public static void sendTest() {
         KeyedMessage<String, String> data = new KeyedMessage<String, String>("TEST_CONN", "", "This is a test");
-        try {
-            producer.send(data);
-        } catch ( Exception e ) {
-            //reset __status message and close tcp port
-        }
+        producer.send(data);
     }
 }

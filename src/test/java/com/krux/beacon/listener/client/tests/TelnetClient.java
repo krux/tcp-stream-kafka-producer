@@ -48,8 +48,8 @@ public final class TelnetClient {
             // Read commands from the stdin.
             ChannelFuture lastWriteFuture = null;
             
-            for (int i = 0; i < 10000; i++ ) {
-                String line = RandomStringUtils.random(500, true, true);
+            for (int i = 0; i < 1000; i++ ) {
+                String line = RandomStringUtils.random(100, true, true);
 
                 // Sends the received line to the server.
                 lastWriteFuture = ch.writeAndFlush(line + "\r\n");
@@ -57,10 +57,12 @@ public final class TelnetClient {
             
             long start = System.currentTimeMillis();
             for (int i = 0; i < 100000; i++ ) {
-                String line = RandomStringUtils.random(500, true, true);
+                String line = RandomStringUtils.random(100, true, true);
 
                 // Sends the received line to the server.
                 lastWriteFuture = ch.writeAndFlush(line + "\r\n");
+                System.out.println( "Sent " + i );
+                Thread.sleep( 100 );
             }
             long time = System.currentTimeMillis() - start;
 
