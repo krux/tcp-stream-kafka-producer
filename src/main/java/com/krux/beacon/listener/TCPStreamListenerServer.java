@@ -154,7 +154,7 @@ public class TCPStreamListenerServer {
         //start a timer that will check every N seconds to see if test messages can be sent to kafka
         // if so, then start our listeners
         try {
-            ConnectionTestKafkaProducer.sendTest();
+            //ConnectionTestKafkaProducer.sendTest();
             startListeners();
         } catch ( Exception e ) {
             log.error( "Cannot start listeners", e );
@@ -197,11 +197,11 @@ public class TCPStreamListenerServer {
             TCPStreamListenerServer.running.set( true );
             
             //start a timer that will check if everything's kosher
-            if ( timer == null ) {
-                timer = new Timer();
-                TestTimerTask tt = new TestTimerTask( listeners );
-                timer.schedule( tt, 5000, 1000 );
-            }
+//            if ( timer == null ) {
+//                timer = new Timer();
+//                TestTimerTask tt = new TestTimerTask( listeners );
+//                timer.schedule( tt, 5000, 1000 );
+//            }
             
             for (Thread t : servers) {
                 try {
