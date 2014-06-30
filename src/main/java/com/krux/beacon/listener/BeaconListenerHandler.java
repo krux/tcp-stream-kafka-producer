@@ -41,7 +41,7 @@ public class BeaconListenerHandler extends SimpleChannelInboundHandler<String> {
         }
 
         long time = System.currentTimeMillis() - start;
-        KruxStdLib.statsd.time("beacon-listener-message", time);
+        KruxStdLib.statsd.time("message_processed", time);
 
     }
 
@@ -53,7 +53,7 @@ public class BeaconListenerHandler extends SimpleChannelInboundHandler<String> {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         log.error("Error during message handling", cause);
-        KruxStdLib.statsd.count( "beacon-listener-message-error" );
+        KruxStdLib.statsd.count( "message_processed_error" );
         // cause.printStackTrace();
         // ctx.close();
     }
