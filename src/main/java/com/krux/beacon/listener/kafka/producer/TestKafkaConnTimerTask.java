@@ -9,24 +9,26 @@ import org.slf4j.LoggerFactory;
 import com.krux.beacon.listener.BeaconListener;
 import com.krux.beacon.listener.TCPStreamListenerServer;
 
-public class TestTimerTask extends TimerTask {
+public class TestKafkaConnTimerTask extends TimerTask {
     
-    private static final Logger log = LoggerFactory.getLogger(TestTimerTask.class.getName());
+    private static final Logger log = LoggerFactory.getLogger(TestKafkaConnTimerTask.class.getName());
     
     private List<BeaconListener> _listeners;
+    private String _testTopic;
 
-    public TestTimerTask( List<BeaconListener> listeners ) {
+    public TestKafkaConnTimerTask( List<BeaconListener> listeners, String topic ) {
         _listeners = listeners;  
+        _testTopic = topic;
     }
 
     @Override
     public void run() {
         try {
-            ConnectionTestKafkaProducer.sendTest();
+            ConnectionTestKafkaProducer.sendTest(_testTopic);
             log.debug( "Test message sent successfully" );
             if ( !TCPStreamListenerServer.running.get() ) {
                 log.info( "Restarting listeners." );
-                TCPStreamListenerServer.startListeners();
+                TCPStreamListenerServer.startListeners(_testTopic);
             }
         } catch ( Exception e ) {
             log.error( "Cannot send test message", e );

@@ -28,14 +28,15 @@ public class ConnectionTestKafkaProducer {
         props.put("partitioner.class",
                 System.getProperty("partitioner.class", "com.krux.beacon.listener.kafka.producer.SimplePartitioner"));
         props.put("producer.type", "sync");
+        props.put("message.send.max.retries", "0");
 
         ProducerConfig config = new ProducerConfig(props);
         producer = new Producer<String, String>(config);
 
     }
 
-    public static void sendTest() {
-        KeyedMessage<String, String> data = new KeyedMessage<String, String>("TEST_CONN", "", "This is a test");
+    public static void sendTest(String topic) {
+        KeyedMessage<String, String> data = new KeyedMessage<String, String>(topic, "", "This is a test");
         producer.send(data);
     }
 }

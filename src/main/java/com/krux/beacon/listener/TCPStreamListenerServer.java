@@ -15,7 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.krux.beacon.listener.kafka.producer.ConnectionTestKafkaProducer;
-import com.krux.beacon.listener.kafka.producer.TestTimerTask;
+import com.krux.beacon.listener.kafka.producer.TestKafkaConnTimerTask;
 import com.krux.stdlib.KruxStdLib;
 
 public class TCPStreamListenerServer {
@@ -107,6 +107,12 @@ public class TCPStreamListenerServer {
                 .withOptionalArg()
                 .ofType(Integer.class)
                 .defaultsTo(100 * 1024);
+        OptionSpec<String> heartbeatTopic = parser
+                .accepts("heartbeat-topic",
+                        "The name of a topic to be used for general connection checking, kafka aliveness, etc.")
+                .withOptionalArg()
+                .ofType(String.class)
+                .defaultsTo("");
        
 
         // give parser to KruxStdLib so it can add our params to the reserved
@@ -154,16 +160,22 @@ public class TCPStreamListenerServer {
         //start a timer that will check every N seconds to see if test messages can be sent to kafka
         // if so, then start our listeners
         try {
-            //ConnectionTestKafkaProducer.sendTest();
-            startListeners();
+            String testTopic = options.valueOf(heartbeatTopic);
+            if ( testTopic != null && !testTopic.trim().equals("") ) {
+                ConnectionTestKafkaProducer.sendTest(options.valueOf(heartbeatTopic));
+                startListeners( testTopic );
+            } else {
+                startListeners( testTopic );
+            }
         } catch ( Exception e ) {
+            System.err.println( "Cannot start listeners." );
             log.error( "Cannot start listeners", e );
         }
         
         //Jos doesn't want this thing to close even if no port mappings are specified. Hmm.
         // for now, just hang indefinitely
         if ( servers.size() <= 1 ) {
-            System.err.println( "No port.topic mappings were specified. If you must specify at least one port.topic cl option." );
+            System.err.println( "No listeners started.  See previous errors." );
             do {
                 Thread.sleep( 1000 );
             } while ( true );
@@ -173,7 +185,7 @@ public class TCPStreamListenerServer {
 
     }
 
-    public static void startListeners() {
+    public static void startListeners( String testTopic ) {
         // ok, mappings and properties handled. Now, start tcp server on each
         // port
 
@@ -197,11 +209,13 @@ public class TCPStreamListenerServer {
             TCPStreamListenerServer.running.set( true );
             
             //start a timer that will check if everything's kosher
-//            if ( timer == null ) {
-//                timer = new Timer();
-//                TestTimerTask tt = new TestTimerTask( listeners );
-//                timer.schedule( tt, 5000, 1000 );
-//            }
+            if ( testTopic != null && !testTopic.trim().equals("") ) {
+                if ( timer == null ) {
+                    timer = new Timer();
+                    TestKafkaConnTimerTask tt = new TestKafkaConnTimerTask( listeners, testTopic );
+                    timer.schedule( tt, 5000, 1000 );
+                }
+            }
             
             for (Thread t : servers) {
                 try {
