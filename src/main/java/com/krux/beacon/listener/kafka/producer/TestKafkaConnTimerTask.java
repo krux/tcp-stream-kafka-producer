@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import com.krux.beacon.listener.BeaconListener;
 import com.krux.beacon.listener.TCPStreamListenerServer;
 import com.krux.server.http.StdHttpServerHandler;
+import com.krux.stdlib.KruxStdLib;
 
 public class TestKafkaConnTimerTask extends TimerTask {
     
@@ -27,6 +28,7 @@ public class TestKafkaConnTimerTask extends TimerTask {
         try {
             ConnectionTestKafkaProducer.sendTest(_testTopic);
             log.debug( "Test message sent successfully" );
+            KruxStdLib.STATSD.count( "heartbeat_topic_success" );
             if ( !TCPStreamListenerServer.running.get() ) {
                 log.info( "Restarting listeners." );
                 TCPStreamListenerServer.resetConnTimer.set( true );
@@ -35,6 +37,7 @@ public class TestKafkaConnTimerTask extends TimerTask {
             
         } catch ( Exception e ) {
             log.error( "Cannot send test message", e );
+            KruxStdLib.STATSD.count( "heartbeat_topic_failure" );
             if ( TCPStreamListenerServer.running.get() ) {
                 log.error( "Stopping listeners" );
                 for ( BeaconListener listener : TCPStreamListenerServer._listeners ) {
