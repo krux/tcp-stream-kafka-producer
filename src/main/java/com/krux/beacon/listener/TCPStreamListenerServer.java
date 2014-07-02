@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import com.krux.beacon.listener.kafka.producer.ConnectionTestKafkaProducer;
 import com.krux.beacon.listener.kafka.producer.TestKafkaConnTimerTask;
+import com.krux.server.http.AppState;
 import com.krux.server.http.StdHttpServerHandler;
 import com.krux.stdlib.KruxStdLib;
 
@@ -173,7 +174,7 @@ public class TCPStreamListenerServer {
                 startListeners( testTopic );
             }
         } catch ( Exception e ) {
-            StdHttpServerHandler.setStatusCodeAndMessage( HttpResponseStatus.INTERNAL_SERVER_ERROR, "Cannot start listeners: " + e.getMessage() );
+            StdHttpServerHandler.setStatusCodeAndMessage( AppState.FAILURE, "Cannot start listeners: " + e.getMessage() );
             System.err.println( "Cannot start listeners." );
             log.error( "Cannot start listeners", e );
             startConnChecker(testTopic);
@@ -183,7 +184,7 @@ public class TCPStreamListenerServer {
         // for now, just hang indefinitely
         if ( servers.size() <= 1 ) {
             System.err.println( "No listeners started.  See previous errors." );
-            StdHttpServerHandler.setStatusCodeAndMessage( HttpResponseStatus.INTERNAL_SERVER_ERROR, "No listeners started." );
+            StdHttpServerHandler.setStatusCodeAndMessage( AppState.FAILURE, "No listeners started." );
             do {
                 Thread.sleep( 1000 );
             } while ( true );

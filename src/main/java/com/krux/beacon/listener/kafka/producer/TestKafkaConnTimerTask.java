@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import com.krux.beacon.listener.BeaconListener;
 import com.krux.beacon.listener.TCPStreamListenerServer;
+import com.krux.server.http.AppState;
 import com.krux.server.http.StdHttpServerHandler;
 import com.krux.stdlib.KruxStdLib;
 
@@ -44,7 +45,7 @@ public class TestKafkaConnTimerTask extends TimerTask {
                     listener.stop();
                 }
                 TCPStreamListenerServer.running.set( false );
-                StdHttpServerHandler.setStatusCodeAndMessage( HttpResponseStatus.INTERNAL_SERVER_ERROR, "Test message failed, listeners stopped " + e.getMessage() );
+                StdHttpServerHandler.setStatusCodeAndMessage( AppState.FAILURE, "Test message failed, listeners stopped: " + e.getMessage() );
             } else {
                 log.info( "Listeners not running, will not attempt to start them"  );
             }
