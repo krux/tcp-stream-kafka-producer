@@ -1,5 +1,7 @@
 package com.krux.beacon.listener;
 
+import io.netty.handler.codec.http.HttpResponseStatus;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import com.krux.beacon.listener.kafka.producer.ConnectionTestKafkaProducer;
 import com.krux.beacon.listener.kafka.producer.TestKafkaConnTimerTask;
+import com.krux.server.http.StdHttpServerHandler;
 import com.krux.stdlib.KruxStdLib;
 
 public class TCPStreamListenerServer {
@@ -26,7 +29,9 @@ public class TCPStreamListenerServer {
     public static List<Thread> servers = new ArrayList<Thread>();
     
     public static AtomicBoolean running = new AtomicBoolean(false);
+    public static AtomicBoolean resetConnTimer = new AtomicBoolean(false);
     private static Timer timer = null;
+    public static List<BeaconListener> _listeners = new ArrayList<BeaconListener>();
 
     public static void main(String[] args) throws InterruptedException {
 
@@ -159,8 +164,8 @@ public class TCPStreamListenerServer {
         
         //start a timer that will check every N seconds to see if test messages can be sent to kafka
         // if so, then start our listeners
+        String testTopic = options.valueOf(heartbeatTopic);
         try {
-            String testTopic = options.valueOf(heartbeatTopic);
             if ( testTopic != null && !testTopic.trim().equals("") ) {
                 ConnectionTestKafkaProducer.sendTest(options.valueOf(heartbeatTopic));
                 startListeners( testTopic );
@@ -168,14 +173,17 @@ public class TCPStreamListenerServer {
                 startListeners( testTopic );
             }
         } catch ( Exception e ) {
+            StdHttpServerHandler.setStatusCodeAndMessage( HttpResponseStatus.INTERNAL_SERVER_ERROR, "Cannot start listeners: " + e.getMessage() );
             System.err.println( "Cannot start listeners." );
             log.error( "Cannot start listeners", e );
+            startConnChecker(testTopic);
         }
         
         //Jos doesn't want this thing to close even if no port mappings are specified. Hmm.
         // for now, just hang indefinitely
         if ( servers.size() <= 1 ) {
             System.err.println( "No listeners started.  See previous errors." );
+            StdHttpServerHandler.setStatusCodeAndMessage( HttpResponseStatus.INTERNAL_SERVER_ERROR, "No listeners started." );
             do {
                 Thread.sleep( 1000 );
             } while ( true );
@@ -190,7 +198,8 @@ public class TCPStreamListenerServer {
         // port
 
         if ( !TCPStreamListenerServer.running.get() ) {
-            List<BeaconListener> listeners = new ArrayList<BeaconListener>();
+            _listeners = new ArrayList<BeaconListener>();
+            servers.clear();
             
             for (Map.Entry<Integer, List<String>> entry : portToTopicsMap.entrySet()) {
                 StringBuilder sb = new StringBuilder();
@@ -200,7 +209,7 @@ public class TCPStreamListenerServer {
                 }
                 log.info("Starting listener on port " + entry.getKey() + " for topics " + sb.toString());
                 BeaconListener listener = new BeaconListener(entry.getKey(), entry.getValue());
-                listeners.add( listener );
+                _listeners.add( listener );
                 Thread t = new Thread(listener);
                 servers.add(t);
                 t.start();
@@ -208,14 +217,8 @@ public class TCPStreamListenerServer {
             
             TCPStreamListenerServer.running.set( true );
             
-            //start a timer that will check if everything's kosher
-            if ( testTopic != null && !testTopic.trim().equals("") ) {
-                if ( timer == null ) {
-                    timer = new Timer();
-                    TestKafkaConnTimerTask tt = new TestKafkaConnTimerTask( listeners, testTopic );
-                    timer.schedule( tt, 5000, 1000 );
-                }
-            }
+            startConnChecker(testTopic);
+            StdHttpServerHandler.resetStatusCodeAndMessageOK();
             
             for (Thread t : servers) {
                 try {
@@ -227,6 +230,30 @@ public class TCPStreamListenerServer {
                     log.error("Error after starting server", e);
                 }
             }
+        }
+    }
+
+    private static void startConnChecker(String testTopic) {
+        //start a timer that will check if everything's kosher
+        log.info( "Trying to start the conn checker" );
+        if ( testTopic != null && !testTopic.trim().equals("") ) {
+            if ( timer == null ) {
+                log.info( "testTopic is not null but timer was null" );
+                timer = new Timer();
+                TestKafkaConnTimerTask tt = new TestKafkaConnTimerTask( testTopic );
+                timer.schedule( tt, 5000, 1000 );
+            } else {
+                log.info( "testTopic is not null AND timer was not null" );
+                if ( resetConnTimer.get() ) {
+                    timer.cancel();
+                    timer = new Timer();
+                    TestKafkaConnTimerTask tt = new TestKafkaConnTimerTask( testTopic );
+                    timer.schedule( tt, 5000, 1000 );
+                    resetConnTimer.set( false );
+                }
+            }
+        } else {
+            log.info( "testTopic is null" );
         }
     }
 

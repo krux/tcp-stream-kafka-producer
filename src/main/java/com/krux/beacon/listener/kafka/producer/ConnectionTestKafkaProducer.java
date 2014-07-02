@@ -37,6 +37,7 @@ public class ConnectionTestKafkaProducer {
 
     public static void sendTest(String topic) {
         KeyedMessage<String, String> data = new KeyedMessage<String, String>(topic, "", "This is a test");
+        log.info( "Sending test message" );
         producer.send(data);
     }
 }
