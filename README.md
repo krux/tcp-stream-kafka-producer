@@ -1,7 +1,9 @@
-java-beacon-listener
-====================
+java-tcp-stream-listener
+========================
 
 Listens on configurable port(s) and splits incoming TCP stream(s) on newlines into individual Kafka messages, places them on configurable queues.  Port -> topic mappings are specified via the --port.topic cl option.
+
+Nearly all of the configurable Kafka producer settings are accesible via cl options.  We'll hone performance and throughput as we go.
 
 Optionally, an HTTP listener will be started and respond to __status calls with the app's status.
 
