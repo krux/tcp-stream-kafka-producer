@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 
 public class BeaconListener implements Runnable {
 
-    private static final Logger log = LoggerFactory.getLogger(BeaconListener.class.getName());
+    private static final Logger LOG = LoggerFactory.getLogger(BeaconListener.class.getName());
 
     private int _port;
     private List<String> _topics;
@@ -39,25 +39,25 @@ public class BeaconListener implements Runnable {
 
             _cf = _b.bind(_port).sync();
             _cf.channel().closeFuture().sync();
-            
+
         } catch (Exception e) {
-            log.error("Error running listener server on " + _port, e);
+            LOG.error("Error running listener server on " + _port, e);
         } finally {
             _bossGroup.shutdownGracefully();
             _workerGroup.shutdownGracefully();
         }
 
     }
-    
+
     public void stop() {
-//        _bossGroup.shutdownGracefully(100, 200, TimeUnit.MILLISECONDS);
-//        _workerGroup.shutdownGracefully(100, 200, TimeUnit.MILLISECONDS);
+        // _bossGroup.shutdownGracefully(100, 200, TimeUnit.MILLISECONDS);
+        // _workerGroup.shutdownGracefully(100, 200, TimeUnit.MILLISECONDS);
         try {
             _bossGroup.shutdownNow();
             _workerGroup.shutdownNow();
             _cf.cancel(true);
-        } catch ( Exception e ) {
-            log.error( "Error while closing listeners.", e );
+        } catch (Exception e) {
+            LOG.error("Error while closing listeners.", e);
         }
     }
 

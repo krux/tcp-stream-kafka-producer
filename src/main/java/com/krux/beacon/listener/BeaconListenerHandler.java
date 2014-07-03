@@ -18,7 +18,7 @@ import com.krux.stdlib.KruxStdLib;
 @Sharable
 public class BeaconListenerHandler extends SimpleChannelInboundHandler<String> {
 
-    private static final Logger log = LoggerFactory.getLogger(BeaconListenerHandler.class.getName());
+    private static final Logger LOG = LoggerFactory.getLogger(BeaconListenerHandler.class.getName());
 
     private List<String> _topics;
 
@@ -33,8 +33,8 @@ public class BeaconListenerHandler extends SimpleChannelInboundHandler<String> {
 
         // All we do here is take the incoming message and plop it onto the
         // configured kafka topic(s). Too easy
-        if (log.isDebugEnabled()) {
-            log.debug("Received message: " + request);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Received message: " + request);
         }
         for (String topic : _topics) {
             KafkaProducer.send(topic, request);
@@ -52,8 +52,8 @@ public class BeaconListenerHandler extends SimpleChannelInboundHandler<String> {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        log.error("Error during message handling", cause);
-        KruxStdLib.STATSD.count( "message_processed_error" );
+        LOG.error("Error during message handling", cause);
+        KruxStdLib.STATSD.count("message_processed_error");
         // cause.printStackTrace();
         // ctx.close();
     }

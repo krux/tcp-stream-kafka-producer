@@ -1,8 +1,0 @@
-/**
- * 
- */
-/**
- * @author casspc
- *
- */
-package mains;

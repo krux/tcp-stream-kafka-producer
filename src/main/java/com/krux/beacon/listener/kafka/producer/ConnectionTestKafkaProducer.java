@@ -2,20 +2,18 @@ package com.krux.beacon.listener.kafka.producer;
 
 import java.util.Properties;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.krux.beacon.listener.TCPStreamListenerServer;
-
 import kafka.javaapi.producer.Producer;
 import kafka.producer.KeyedMessage;
 import kafka.producer.ProducerConfig;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class ConnectionTestKafkaProducer {
 
-    private static Producer<String, String> producer;
-    
-    private static final Logger log = LoggerFactory.getLogger(ConnectionTestKafkaProducer.class.getName());
+    private static Producer<String, String> PRODUCER;
+
+    private static final Logger LOG = LoggerFactory.getLogger(ConnectionTestKafkaProducer.class.getName());
 
     static {
 
@@ -31,13 +29,13 @@ public class ConnectionTestKafkaProducer {
         props.put("message.send.max.retries", "0");
 
         ProducerConfig config = new ProducerConfig(props);
-        producer = new Producer<String, String>(config);
+        PRODUCER = new Producer<String, String>(config);
 
     }
 
     public static void sendTest(String topic) {
         KeyedMessage<String, String> data = new KeyedMessage<String, String>(topic, "", "This is a test");
-        log.info( "Sending test message" );
-        producer.send(data);
+        LOG.info("Sending test message");
+        PRODUCER.send(data);
     }
 }
