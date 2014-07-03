@@ -1,7 +1,17 @@
 java-beacon-listener
 ====================
 
-Listens on configurable port(s) and splits incoming TCP stream(s) on newlines into individual Kafka messages, places them on configurable queues.
+Listens on configurable port(s) and splits incoming TCP stream(s) on newlines into individual Kafka messages, places them on configurable queues.  Port -> topic mappings are specified via the --port.topic cl option.
+
+Optionally, an HTTP listener will be started and respond to __status calls with the app's status.
+
+Also optionally, a --heartbeat-topic option may be passed.  This topic name will be used for "heartbeat" checks of the Kafka cluster.  When that topic cannot be written to, all open TCP listening ports will be closed until the Kafka cluster is available again (allowing upstream handlers to route around this listener).
+
+Example command line:
+
+```
+java -jar kafka-stream-listener-full.jar --port.topic 1543:topic1,topic2,topic3 --port.topic 32344:topic4 --app-name tcp-stream-kafka-listener --stats --stats-environment cass-dev --http-port 8082 --heartbeat-topic TEST_CONN
+```
 
 Output from --help:
 
