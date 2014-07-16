@@ -107,6 +107,11 @@ public class TCPStreamListenerServer {
                         "queue.enqueue.timeout.ms",
                         "The amount of time to block before dropping messages when running in async mode and the buffer has reached queue.buffering.max.messages. If set to 0 events will be enqueued immediately or dropped if the queue is full (the producer send call will never block). If set to -1 the producer will block indefinitely and never willingly drop a send.")
                 .withOptionalArg().ofType(Integer.class).defaultsTo(-1);
+        OptionSpec<Integer> decoderFrameSize = parser
+                .accepts(
+                        "krux.decoder.frame.size",
+                        "The listener's DelimiterBasedFrameDecoder frame length in bytes")
+                .withOptionalArg().ofType(Integer.class).defaultsTo(8192*2);
         OptionSpec<Integer> batchNumMessages = parser
                 .accepts(
                         "batch.num.messages",
@@ -173,15 +178,15 @@ public class TCPStreamListenerServer {
         try {
             if (testTopic != null && !testTopic.trim().equals("")) {
                 ConnectionTestKafkaProducer.sendTest(options.valueOf(heartbeatTopic));
-                startListeners(testTopic);
+                startListeners(testTopic, options.valueOf(decoderFrameSize));
             } else {
-                startListeners(testTopic);
+                startListeners(testTopic, options.valueOf(decoderFrameSize));
             }
         } catch (Exception e) {
             StdHttpServerHandler.setStatusCodeAndMessage(AppState.FAILURE, "Cannot start listeners: " + e.getMessage());
             System.err.println("Cannot start listeners.");
             LOG.error("Cannot start listeners", e);
-            startConnChecker(testTopic);
+            startConnChecker(testTopic, options.valueOf(decoderFrameSize) );
         }
 
         // Jos doesn't want this thing to close even if no port mappings are
@@ -199,7 +204,7 @@ public class TCPStreamListenerServer {
 
     }
 
-    public static void startListeners(String testTopic) {
+    public static void startListeners(String testTopic, Integer decoderFrameSize) {
         // ok, mappings and properties handled. Now, start tcp server on each
         // port
 
@@ -214,7 +219,7 @@ public class TCPStreamListenerServer {
                     sb.append(", ");
                 }
                 LOG.info("Starting listener on port " + entry.getKey() + " for topics " + sb.toString());
-                BeaconListener listener = new BeaconListener(entry.getKey(), entry.getValue());
+                BeaconListener listener = new BeaconListener(entry.getKey(), entry.getValue(), decoderFrameSize);
                 LISTENERS.add(listener);
                 Thread t = new Thread(listener);
                 SERVERS.add(t);
@@ -223,7 +228,7 @@ public class TCPStreamListenerServer {
 
             TCPStreamListenerServer.IS_RUNNING.set(true);
 
-            startConnChecker(testTopic);
+            startConnChecker(testTopic, decoderFrameSize);
             StdHttpServerHandler.resetStatusCodeAndMessageOK();
 
             for (Thread t : SERVERS) {
@@ -241,21 +246,21 @@ public class TCPStreamListenerServer {
         }
     }
 
-    private static void startConnChecker(String testTopic) {
+    private static void startConnChecker(String testTopic, Integer decoderFrameSize) {
         // start a timer that will check if everything's kosher
         LOG.info("Trying to start the conn checker");
         if (testTopic != null && !testTopic.trim().equals("")) {
             if (TIMER == null) {
                 LOG.info("testTopic is not null but timer was null");
                 TIMER = new Timer();
-                TestKafkaConnTimerTask tt = new TestKafkaConnTimerTask(testTopic);
+                TestKafkaConnTimerTask tt = new TestKafkaConnTimerTask(testTopic, decoderFrameSize);
                 TIMER.schedule(tt, 5000, 1000);
             } else {
                 LOG.info("testTopic is not null AND timer was not null");
                 if (RESET_CONN_TIMER.get()) {
                     TIMER.cancel();
                     TIMER = new Timer();
-                    TestKafkaConnTimerTask tt = new TestKafkaConnTimerTask(testTopic);
+                    TestKafkaConnTimerTask tt = new TestKafkaConnTimerTask(testTopic, decoderFrameSize);
                     TIMER.schedule(tt, 5000, 1000);
                     RESET_CONN_TIMER.set(false);
                 }

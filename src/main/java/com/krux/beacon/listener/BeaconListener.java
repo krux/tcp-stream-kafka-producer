@@ -18,13 +18,15 @@ public class BeaconListener implements Runnable {
     private int _port;
     private List<String> _topics;
     private ServerBootstrap _b;
+    private int _decoderFrameSize;
     EventLoopGroup _bossGroup;
     EventLoopGroup _workerGroup;
     ChannelFuture _cf;
 
-    public BeaconListener(Integer port, List<String> topics) {
+    public BeaconListener(Integer port, List<String> topics, int decoderFrameSize) {
         _port = port;
         _topics = topics;
+        _decoderFrameSize = decoderFrameSize;
     }
 
     @Override
@@ -35,7 +37,7 @@ public class BeaconListener implements Runnable {
         try {
             _b = new ServerBootstrap();
             _b.group(_bossGroup, _workerGroup).channel(NioServerSocketChannel.class)
-                    .childHandler(new BeaconListenerInitializer(_topics));
+                    .childHandler(new BeaconListenerInitializer(_topics, _decoderFrameSize));
 
             _cf = _b.bind(_port).sync();
             _cf.channel().closeFuture().sync();

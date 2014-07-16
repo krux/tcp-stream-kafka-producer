@@ -19,9 +19,11 @@ public class BeaconListenerInitializer extends ChannelInitializer<SocketChannel>
     private static final StringEncoder ENCODER = new StringEncoder();
 
     private List<String> _topics;
+    private int _decoderFrameSize;
 
-    public BeaconListenerInitializer(List<String> topics) {
+    public BeaconListenerInitializer(List<String> topics, int decoderFrameSize) {
         _topics = topics;
+        _decoderFrameSize = decoderFrameSize;
     }
 
     @Override
@@ -29,7 +31,7 @@ public class BeaconListenerInitializer extends ChannelInitializer<SocketChannel>
         ChannelPipeline pipeline = ch.pipeline();
 
         // Add the text line codec combination first,
-        pipeline.addLast(new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()));
+        pipeline.addLast(new DelimiterBasedFrameDecoder(_decoderFrameSize, Delimiters.lineDelimiter()));
         // the encoder and decoder are static as these are sharable
         pipeline.addLast(DECODER);
         pipeline.addLast(ENCODER);

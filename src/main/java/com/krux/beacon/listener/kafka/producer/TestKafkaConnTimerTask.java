@@ -16,9 +16,11 @@ public class TestKafkaConnTimerTask extends TimerTask {
     private static final Logger LOG = LoggerFactory.getLogger(TestKafkaConnTimerTask.class.getName());
 
     private String _testTopic;
+    private int _decoderFrameSize;
 
-    public TestKafkaConnTimerTask(String topic) {
+    public TestKafkaConnTimerTask(String topic, int decoderFrameSize) {
         _testTopic = topic;
+        _decoderFrameSize = decoderFrameSize;
     }
 
     @Override
@@ -30,7 +32,7 @@ public class TestKafkaConnTimerTask extends TimerTask {
             if (!TCPStreamListenerServer.IS_RUNNING.get()) {
                 LOG.warn("Restarting listeners.");
                 TCPStreamListenerServer.RESET_CONN_TIMER.set(true);
-                TCPStreamListenerServer.startListeners(_testTopic);
+                TCPStreamListenerServer.startListeners(_testTopic, _decoderFrameSize);
             }
 
         } catch (Exception e) {
