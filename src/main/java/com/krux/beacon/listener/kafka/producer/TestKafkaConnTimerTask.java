@@ -34,7 +34,7 @@ public class TestKafkaConnTimerTask extends TimerTask {
                 TCPStreamListenerServer.RESET_CONN_TIMER.set(true);
                 TCPStreamListenerServer.startListeners(_testTopic, _decoderFrameSize);
             }
-
+            
         } catch (Exception e) {
             LOG.error("Cannot send test message", e);
             KruxStdLib.STATSD.count("heartbeat_topic_failure");
@@ -52,5 +52,4 @@ public class TestKafkaConnTimerTask extends TimerTask {
         }
 
     }
-
 }
