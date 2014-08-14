@@ -31,7 +31,7 @@ public class BeaconListenerHandler extends SimpleChannelInboundHandler<String> {
             new HashMap<String,Long>());
     private static final Map<String,Object> rps = Collections.synchronizedMap(
             new HashMap<String,Object>());
-    private static Map<String,Meter> rqsMeters = null;
+    private static Map<String,Meter> rqsMeters = Collections.synchronizedMap( new HashMap<String,Meter>() );
     
     private static final MetricRegistry metrics = new MetricRegistry();
     
@@ -45,8 +45,7 @@ public class BeaconListenerHandler extends SimpleChannelInboundHandler<String> {
     public BeaconListenerHandler(List<String> topics) {
         _topics = topics;
         
-        if ( rqsMeters == null ) {
-            rqsMeters = Collections.synchronizedMap( new HashMap<String,Meter>() );
+        if ( rqsMeters.keySet().size() == 0 ) {
             for ( String topic : _topics ) {
                 rqsMeters.put( topic, metrics.meter(name(BeaconListenerHandler.class, topic + "_requests")));
             }
@@ -75,13 +74,15 @@ public class BeaconListenerHandler extends SimpleChannelInboundHandler<String> {
                 rqsMeters.get( topic ).mark();
                 Map<String,Object> qpsMap = new HashMap<String,Object>();
                 Meter m = rqsMeters.get( topic );
-                qpsMap.put( "count", m.getCount() );
-                qpsMap.put( "1_min_rate", m.getOneMinuteRate() );
-                qpsMap.put( "5_min_rate", m.getFiveMinuteRate() );
-                qpsMap.put( "15_min_rate", m.getFifteenMinuteRate() );
-                qpsMap.put( "mean_rate", m.getMeanRate() );
-                
-                rps.put( topic, qpsMap );
+                if ( m != null ) {
+                    qpsMap.put( "count", m.getCount() );
+                    qpsMap.put( "1_min_rate", m.getOneMinuteRate() );
+                    qpsMap.put( "5_min_rate", m.getFiveMinuteRate() );
+                    qpsMap.put( "15_min_rate", m.getFifteenMinuteRate() );
+                    qpsMap.put( "mean_rate", m.getMeanRate() );
+                    
+                    rps.put( topic, qpsMap );
+                }
             } catch ( Exception e ) {
                 long time = System.currentTimeMillis() - start;
                 KruxStdLib.STATSD.time("message_error_" + topic, time);                
