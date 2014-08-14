@@ -46,7 +46,8 @@ public class TCPStreamListenerServer {
 
     public static AtomicBoolean IS_RUNNING = new AtomicBoolean(false);
     public static AtomicBoolean RESET_CONN_TIMER = new AtomicBoolean(false);
-    private static Timer TIMER = null;
+    private static Timer CONNECTION_TEST_TIMER = null;
+    private static Timer STATUS_UPDATE_TIMER = null;
     public static List<BeaconListener> LISTENERS = new ArrayList<BeaconListener>();
 
     public static void main(String[] args) throws InterruptedException {
@@ -111,7 +112,7 @@ public class TCPStreamListenerServer {
                 .accepts(
                         "krux.decoder.frame.size",
                         "The listener's DelimiterBasedFrameDecoder frame length in bytes")
-                .withOptionalArg().ofType(Integer.class).defaultsTo(8192*2);
+                .withOptionalArg().ofType(Integer.class).defaultsTo(1024*16);
         OptionSpec<Integer> batchNumMessages = parser
                 .accepts(
                         "batch.num.messages",
@@ -153,6 +154,7 @@ public class TCPStreamListenerServer {
                 topicList.add(topic);
             }
             PORT_TO_TOPICS_MAP.put(port, topicList);
+            StdHttpServerHandler.addAdditionalStatus( "port_mappings", PORT_TO_TOPICS_MAP );
         }
 
         // these are picked up by the KafkaProducer class
@@ -188,6 +190,11 @@ public class TCPStreamListenerServer {
             LOG.error("Cannot start listeners", e);
             startConnChecker(testTopic, options.valueOf(decoderFrameSize) );
         }
+        
+        //populate the std lib status map with port -> topic configurations
+        StdHttpServerHandler.addAdditionalStatus( "version",  KruxStdLib.APP_VERSION );
+        
+        //start the timer for updating the http status message with topic timings
 
         // Jos doesn't want this thing to close even if no port mappings are
         // specified. Hmm.
@@ -250,18 +257,18 @@ public class TCPStreamListenerServer {
         // start a timer that will check if everything's kosher
         LOG.info("Trying to start the conn checker");
         if (testTopic != null && !testTopic.trim().equals("")) {
-            if (TIMER == null) {
+            if (CONNECTION_TEST_TIMER == null) {
                 LOG.info("testTopic is not null but timer was null");
-                TIMER = new Timer();
+                CONNECTION_TEST_TIMER = new Timer();
                 TestKafkaConnTimerTask tt = new TestKafkaConnTimerTask(testTopic, decoderFrameSize);
-                TIMER.schedule(tt, 5000, 1000);
+                CONNECTION_TEST_TIMER.schedule(tt, 5000, 1000);
             } else {
                 LOG.info("testTopic is not null AND timer was not null");
                 if (RESET_CONN_TIMER.get()) {
-                    TIMER.cancel();
-                    TIMER = new Timer();
+                    CONNECTION_TEST_TIMER.cancel();
+                    CONNECTION_TEST_TIMER = new Timer();
                     TestKafkaConnTimerTask tt = new TestKafkaConnTimerTask(testTopic, decoderFrameSize);
-                    TIMER.schedule(tt, 5000, 1000);
+                    CONNECTION_TEST_TIMER.schedule(tt, 5000, 1000);
                     RESET_CONN_TIMER.set(false);
                 }
             }

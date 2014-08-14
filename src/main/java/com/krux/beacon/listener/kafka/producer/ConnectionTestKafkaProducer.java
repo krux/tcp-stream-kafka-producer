@@ -9,6 +9,8 @@ import kafka.producer.ProducerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.krux.stdlib.KruxStdLib;
+
 public class ConnectionTestKafkaProducer {
 
     private static Producer<String, String> PRODUCER;
@@ -34,8 +36,16 @@ public class ConnectionTestKafkaProducer {
     }
 
     public static void sendTest(String topic) {
-        KeyedMessage<String, String> data = new KeyedMessage<String, String>(topic, "", "This is a test");
-        LOG.info("Sending test message");
-        PRODUCER.send(data);
+        try {
+            long start = System.currentTimeMillis();
+            KeyedMessage<String, String> data = new KeyedMessage<String, String>(topic, "", "This is a test");
+            
+            LOG.info("Sending test message");
+            PRODUCER.send(data);
+            long time = System.currentTimeMillis() - start;
+            KruxStdLib.STATSD.time("test_message_sent", time);
+        } catch ( Exception e ) {
+            KruxStdLib.STATSD.count("test_message_error");
+        }
     }
 }

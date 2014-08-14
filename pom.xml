@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.krux</groupId>
 	<artifactId>kafka-stream-listener</artifactId>
-	<version>0.3.2</version>
+	<version>0.3.5</version>
 
 	<build>
 		<resources>
@@ -65,7 +65,7 @@
 		<dependency>
 			<groupId>com.krux</groupId>
 			<artifactId>krux-stdlib</artifactId>
-			<version>1.0.3</version>
+			<version>1.0.6</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
