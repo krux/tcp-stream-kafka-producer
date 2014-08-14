@@ -72,7 +72,7 @@ public class BeaconListenerHandler extends SimpleChannelInboundHandler<String> {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         LOG.error("Error during message handling", cause);
-        KruxStdLib.STATSD.count("message_processed_error");
+        KruxStdLib.STATSD.count("message_processed_error_all");
         // cause.printStackTrace();
         // ctx.close();
     }
