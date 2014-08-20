@@ -30,9 +30,12 @@ public class TestKafkaConnTimerTask extends TimerTask {
     public void run() {
         try {
             ProducerStats pstats = ProducerStatsRegistry.getProducerStats(System.getProperty("client.id", ""));
+            
             long oneMinuteRate = (long) pstats.failedSendRate().oneMinuteRate();
+            long droppedMessageCount = (long) pstats.failedSendRate().count();
             KruxStdLib.STATSD.gauge("1_min_drp_rt", oneMinuteRate);
-            StdHttpServerHandler.addAdditionalStatus("1_min_drp_rt", oneMinuteRate);
+            KruxStdLib.STATSD.gauge("dropped_messages", droppedMessageCount);
+            StdHttpServerHandler.addAdditionalStatus("dropped_messages", droppedMessageCount);
 
             ConnectionTestKafkaProducer.sendTest(_testTopic);
             LOG.debug("Test message sent successfully");
