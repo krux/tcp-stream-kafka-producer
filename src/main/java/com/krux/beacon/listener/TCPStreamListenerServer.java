@@ -168,8 +168,10 @@ public class TCPStreamListenerServer {
                 String.valueOf((Integer) optionMap.get(queueBufferingMaxMessages).get(0)));
         System.setProperty("queue.enqueue.timeout.ms", String.valueOf((Integer) optionMap.get(queueEnqueTimeoutMs).get(0)));
         System.setProperty("batch.num.messages", String.valueOf((Integer) optionMap.get(batchNumMessages).get(0)));
-        System.setProperty("client.id", (String) optionMap.get(clientId).get(0));
+        System.setProperty("client.id", options.valueOf(clientId));
         System.setProperty("send.buffer.bytes", String.valueOf((Integer) optionMap.get(sendBufferBytes).get(0)));
+        
+        StdHttpServerHandler.addAdditionalStatus("client_id", options.valueOf(clientId) );
 
         // start a timer that will check every N ms to see if test messages
         // can be sent to kafka. If so, then start our listeners
