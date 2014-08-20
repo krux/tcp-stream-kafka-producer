@@ -167,7 +167,7 @@ public class TCPStreamListenerServer {
         System.setProperty("queue.buffering.max.messages",
                 String.valueOf((Integer) optionMap.get(queueBufferingMaxMessages).get(0)));
         System.setProperty("queue.enqueue.timeout.ms", String.valueOf((Integer) optionMap.get(queueEnqueTimeoutMs).get(0)));
-        System.setProperty("batch.num.messages", String.valueOf((Integer) optionMap.get(batchNumMessages).get(0)));
+        System.setProperty("batch.num.messages", String.valueOf(options.valueOf(batchNumMessages)));
         System.setProperty("client.id", options.valueOf(clientId));
         System.setProperty("send.buffer.bytes", String.valueOf((Integer) optionMap.get(sendBufferBytes).get(0)));
         
