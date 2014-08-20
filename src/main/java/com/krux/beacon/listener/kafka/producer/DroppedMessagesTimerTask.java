@@ -11,6 +11,7 @@ import com.krux.stdlib.KruxStdLib;
 public class DroppedMessagesTimerTask extends TimerTask {
 
     private static long droppedMessages = 0;
+    private static int reportCount = 0;
 
     @Override
     public void run() {
@@ -19,9 +20,24 @@ public class DroppedMessagesTimerTask extends TimerTask {
         Integer batchSize = Integer.parseInt(System.getProperty("batch.num.messages"));
         Long latestDropped = droppedMessageCount * batchSize;
 
-        StdHttpServerHandler.addAdditionalStatus("dropped_messages", (latestDropped - droppedMessages));
+        if ( latestDropped > droppedMessages ) {
+            //more messages have been dropped, report new value
+            reportCount = 0;
+            StdHttpServerHandler.addAdditionalStatus("dropped_messages", (latestDropped - droppedMessages));
+            KruxStdLib.STATSD.gauge("dropped_messages", (latestDropped - droppedMessages));
+            
+        } else if ( latestDropped == droppedMessages ) {
+            reportCount++;
+            if ( reportCount == 3 ) {
+                StdHttpServerHandler.addAdditionalStatus("dropped_messages", (latestDropped - droppedMessages));
+                KruxStdLib.STATSD.gauge("dropped_messages", (latestDropped - droppedMessages));
+                reportCount = 0;
+            }
+        }
         droppedMessages = latestDropped;
-        KruxStdLib.STATSD.gauge("dropped_messages", (latestDropped - droppedMessages));
+
+        
+        
 
     }
 

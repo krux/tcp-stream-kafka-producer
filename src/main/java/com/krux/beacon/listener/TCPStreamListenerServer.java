@@ -261,6 +261,7 @@ public class TCPStreamListenerServer {
             if (CONNECTION_TEST_TIMER == null) {
                 LOG.info("testTopic is not null but timer was null");
                 CONNECTION_TEST_TIMER = new Timer();
+                
                 TestKafkaConnTimerTask tt = new TestKafkaConnTimerTask(testTopic, decoderFrameSize);
                 CONNECTION_TEST_TIMER.schedule(tt, 5000, 1000);
 
