@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.krux.beacon.listener.kafka.producer.ConnectionTestKafkaProducer;
+import com.krux.beacon.listener.kafka.producer.DroppedMessagesTimerTask;
 import com.krux.beacon.listener.kafka.producer.TestKafkaConnTimerTask;
 import com.krux.server.http.AppState;
 import com.krux.server.http.StdHttpServerHandler;
@@ -170,8 +171,8 @@ public class TCPStreamListenerServer {
         System.setProperty("batch.num.messages", String.valueOf(options.valueOf(batchNumMessages)));
         System.setProperty("client.id", options.valueOf(clientId));
         System.setProperty("send.buffer.bytes", String.valueOf((Integer) optionMap.get(sendBufferBytes).get(0)));
-        
-        StdHttpServerHandler.addAdditionalStatus("client_id", options.valueOf(clientId) );
+
+        StdHttpServerHandler.addAdditionalStatus("client_id", options.valueOf(clientId));
 
         // start a timer that will check every N ms to see if test messages
         // can be sent to kafka. If so, then start our listeners
@@ -262,6 +263,9 @@ public class TCPStreamListenerServer {
                 CONNECTION_TEST_TIMER = new Timer();
                 TestKafkaConnTimerTask tt = new TestKafkaConnTimerTask(testTopic, decoderFrameSize);
                 CONNECTION_TEST_TIMER.schedule(tt, 5000, 1000);
+
+                DroppedMessagesTimerTask dmtt = new DroppedMessagesTimerTask();
+                CONNECTION_TEST_TIMER.schedule(dmtt, 15000, 15000);
             } else {
                 LOG.info("testTopic is not null AND timer was not null");
                 if (RESET_CONN_TIMER.get()) {
