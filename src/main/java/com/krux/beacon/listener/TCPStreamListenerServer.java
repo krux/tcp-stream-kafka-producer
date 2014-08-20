@@ -48,6 +48,7 @@ public class TCPStreamListenerServer {
     public static AtomicBoolean IS_RUNNING = new AtomicBoolean(false);
     public static AtomicBoolean RESET_CONN_TIMER = new AtomicBoolean(false);
     private static Timer CONNECTION_TEST_TIMER = null;
+    private static Timer DROPPED_MESSAGES_TIMER = new Timer();
     public static List<BeaconListener> LISTENERS = new ArrayList<BeaconListener>();
 
     public static void main(String[] args) throws InterruptedException {
@@ -266,7 +267,7 @@ public class TCPStreamListenerServer {
                 CONNECTION_TEST_TIMER.schedule(tt, 5000, 1000);
 
                 DroppedMessagesTimerTask dmtt = new DroppedMessagesTimerTask();
-                CONNECTION_TEST_TIMER.schedule(dmtt, 15000, 15000);
+                DROPPED_MESSAGES_TIMER.schedule(dmtt, 15000, 15000);
             } else {
                 LOG.info("testTopic is not null AND timer was not null");
                 if (RESET_CONN_TIMER.get()) {
