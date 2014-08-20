@@ -2,6 +2,9 @@ package com.krux.beacon.listener.kafka.producer;
 
 import java.util.TimerTask;
 
+import kafka.producer.ProducerStats;
+import kafka.producer.ProducerStatsRegistry;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +29,11 @@ public class TestKafkaConnTimerTask extends TimerTask {
     @Override
     public void run() {
         try {
+            ProducerStats pstats = ProducerStatsRegistry.getProducerStats(System.getProperty("client.id", ""));
+            long oneMinuteRate = (long) pstats.failedSendRate().oneMinuteRate();
+            KruxStdLib.STATSD.gauge("1_min_drp_rt", oneMinuteRate);
+            StdHttpServerHandler.addAdditionalStatus("1_min_drp_rt", oneMinuteRate);
+
             ConnectionTestKafkaProducer.sendTest(_testTopic);
             LOG.debug("Test message sent successfully");
             KruxStdLib.STATSD.count("heartbeat_topic_success");
@@ -35,7 +43,7 @@ public class TestKafkaConnTimerTask extends TimerTask {
                 TCPStreamListenerServer.RESET_CONN_TIMER.set(true);
                 TCPStreamListenerServer.startListeners(_testTopic, _decoderFrameSize);
             }
-            
+
         } catch (Exception e) {
             LOG.error("Cannot send test message", e);
             KruxStdLib.STATSD.count("heartbeat_topic_failure");

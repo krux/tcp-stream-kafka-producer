@@ -47,7 +47,6 @@ public class TCPStreamListenerServer {
     public static AtomicBoolean IS_RUNNING = new AtomicBoolean(false);
     public static AtomicBoolean RESET_CONN_TIMER = new AtomicBoolean(false);
     private static Timer CONNECTION_TEST_TIMER = null;
-    private static Timer STATUS_UPDATE_TIMER = null;
     public static List<BeaconListener> LISTENERS = new ArrayList<BeaconListener>();
 
     public static void main(String[] args) throws InterruptedException {
@@ -109,10 +108,8 @@ public class TCPStreamListenerServer {
                         "The amount of time to block before dropping messages when running in async mode and the buffer has reached queue.buffering.max.messages. If set to 0 events will be enqueued immediately or dropped if the queue is full (the producer send call will never block). If set to -1 the producer will block indefinitely and never willingly drop a send.")
                 .withOptionalArg().ofType(Integer.class).defaultsTo(-1);
         OptionSpec<Integer> decoderFrameSize = parser
-                .accepts(
-                        "krux.decoder.frame.size",
-                        "The listener's DelimiterBasedFrameDecoder frame length in bytes")
-                .withOptionalArg().ofType(Integer.class).defaultsTo(1024*16);
+                .accepts("krux.decoder.frame.size", "The listener's DelimiterBasedFrameDecoder frame length in bytes")
+                .withOptionalArg().ofType(Integer.class).defaultsTo(1024 * 16);
         OptionSpec<Integer> batchNumMessages = parser
                 .accepts(
                         "batch.num.messages",
@@ -154,7 +151,7 @@ public class TCPStreamListenerServer {
                 topicList.add(topic);
             }
             PORT_TO_TOPICS_MAP.put(port, topicList);
-            StdHttpServerHandler.addAdditionalStatus( "port_mappings", PORT_TO_TOPICS_MAP );
+            StdHttpServerHandler.addAdditionalStatus("port_mappings", PORT_TO_TOPICS_MAP);
         }
 
         // these are picked up by the KafkaProducer class
@@ -188,13 +185,14 @@ public class TCPStreamListenerServer {
             StdHttpServerHandler.setStatusCodeAndMessage(AppState.FAILURE, "Cannot start listeners: " + e.getMessage());
             System.err.println("Cannot start listeners.");
             LOG.error("Cannot start listeners", e);
-            startConnChecker(testTopic, options.valueOf(decoderFrameSize) );
+            startConnChecker(testTopic, options.valueOf(decoderFrameSize));
         }
-        
-        //populate the std lib status map with port -> topic configurations
-        StdHttpServerHandler.addAdditionalStatus( "version",  KruxStdLib.APP_VERSION );
-        
-        //start the timer for updating the http status message with topic timings
+
+        // populate the std lib status map with port -> topic configurations
+        StdHttpServerHandler.addAdditionalStatus("version", KruxStdLib.APP_VERSION);
+
+        // start the timer for updating the http status message with topic
+        // timings
 
         // Jos doesn't want this thing to close even if no port mappings are
         // specified. Hmm.

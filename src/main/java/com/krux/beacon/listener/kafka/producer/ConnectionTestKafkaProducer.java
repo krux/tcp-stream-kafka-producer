@@ -36,16 +36,11 @@ public class ConnectionTestKafkaProducer {
     }
 
     public static void sendTest(String topic) {
-        try {
-            long start = System.currentTimeMillis();
-            KeyedMessage<String, String> data = new KeyedMessage<String, String>(topic, "", "This is a test");
-            
-            LOG.info("Sending test message");
-            PRODUCER.send(data);
-            long time = System.currentTimeMillis() - start;
-            KruxStdLib.STATSD.time("test_message_sent", time);
-        } catch ( Exception e ) {
-            KruxStdLib.STATSD.count("test_message_error");
-        }
+        long start = System.currentTimeMillis();
+        KeyedMessage<String, String> data = new KeyedMessage<String, String>(topic, "", "This is a test");
+        LOG.info("Sending test message");
+        PRODUCER.send(data);
+        long time = System.currentTimeMillis() - start;
+        KruxStdLib.STATSD.time("test_message_sent", time);
     }
 }
