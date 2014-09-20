@@ -140,9 +140,9 @@ public class TCPStreamListenerServer {
 
         // parse the configured port -> topic mappings, put in global hashmap
         Map<OptionSpec<?>, List<?>> optionMap = options.asMap();
-        List<?> portTopicMap = optionMap.get(portTopicMappings);
+        List<?> portTopicList = optionMap.get(portTopicMappings);
 
-        for (Object mapping : portTopicMap) {
+        for (Object mapping : portTopicList) {
             String mappingString = (String) mapping;
             String[] parts = mappingString.split(":");
             Integer port = Integer.parseInt(parts[0]);
