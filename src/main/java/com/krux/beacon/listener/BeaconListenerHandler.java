@@ -60,7 +60,7 @@ public class BeaconListenerHandler extends SimpleChannelInboundHandler<String> {
                 long time = System.currentTimeMillis() - start;
                 long timeNs = System.nanoTime() - startNs;
                 lastTopicTimes.put(topic, timeNs);
-                KruxStdLib.STATSD.time("message_processed_" + topic, time);
+                KruxStdLib.STATSD.time("message_processed." + topic, time);
 
                 Map<String, Object> qpsMap = new HashMap<String, Object>();
                 Meter m = rqsMeters.get(topic);
@@ -79,7 +79,7 @@ public class BeaconListenerHandler extends SimpleChannelInboundHandler<String> {
             } catch (Exception e) {
                 LOG.error("Error trying to send message", e);
                 long time = System.currentTimeMillis() - start;
-                KruxStdLib.STATSD.time("message_error_" + topic, time);
+                KruxStdLib.STATSD.time("message_error." + topic, time);
             }
         }
 
