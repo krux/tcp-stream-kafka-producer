@@ -267,7 +267,7 @@ public class TCPStreamListenerServer {
                 CONNECTION_TEST_TIMER.schedule(tt, 5000, 1000);
 
                 DroppedMessagesTimerTask dmtt = new DroppedMessagesTimerTask();
-                DROPPED_MESSAGES_TIMER.schedule(dmtt, 15000, 15000);
+                DROPPED_MESSAGES_TIMER.schedule(dmtt, 30000, (60*1000*15));
             } else {
                 LOG.info("testTopic is not null AND timer was not null");
                 if (RESET_CONN_TIMER.get()) {
