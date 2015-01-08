@@ -26,7 +26,7 @@ public class ConnectionTestKafkaProducer {
         props.put("metadata.broker.list", System.getProperty("metadata.broker.list", "localhost:9092"));
         props.put("serializer.class", System.getProperty("serializer.class", "kafka.serializer.StringEncoder"));
         props.put("partitioner.class",
-                System.getProperty("partitioner.class", "com.krux.beacon.listener.kafka.producer.SimplePartitioner"));
+                System.getProperty("partitioner.class", "com.krux.kafka.producer.SimplePartitioner"));
         props.put("producer.type", "sync");
         props.put("message.send.max.retries", "0");
 
