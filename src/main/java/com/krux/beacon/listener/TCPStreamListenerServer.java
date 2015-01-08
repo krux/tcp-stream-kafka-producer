@@ -113,7 +113,7 @@ public class TCPStreamListenerServer {
                 .withOptionalArg().ofType(Integer.class).defaultsTo(-1);
         OptionSpec<Integer> decoderFrameSize = parser
                 .accepts("krux.decoder.frame.size", "The listener's DelimiterBasedFrameDecoder frame length in bytes")
-                .withOptionalArg().ofType(Integer.class).defaultsTo(1024 * 16);
+                .withOptionalArg().ofType(Integer.class).defaultsTo(1024 * 32);
         OptionSpec<Integer> batchNumMessages = parser
                 .accepts(
                         "batch.num.messages",
