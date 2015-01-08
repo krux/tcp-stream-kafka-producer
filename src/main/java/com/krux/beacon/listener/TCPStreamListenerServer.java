@@ -51,6 +51,8 @@ public class TCPStreamListenerServer {
     private static Timer DROPPED_MESSAGES_TIMER = new Timer();
     public static List<BeaconListener> LISTENERS = new ArrayList<BeaconListener>();
 
+    public static boolean USE_KAFKA;
+
     public static void main(String[] args) throws InterruptedException {
 
         // handle a couple custom cli-params
@@ -128,6 +130,7 @@ public class TCPStreamListenerServer {
                 .accepts("heartbeat-topic",
                         "The name of a topic to be used for general connection checking, kafka aliveness, etc.")
                 .withOptionalArg().ofType(String.class).defaultsTo("");
+        OptionSpec keepStreamsOpen = parser.accepts( "always-accept-streams", "Forces the listener to keep incoming stream ports open even when no kafka nodes are reachable. Intended for use during kafka upgrades." );
 
         // give parser to KruxStdLib so it can add our params to the reserved
         // list
@@ -178,8 +181,9 @@ public class TCPStreamListenerServer {
         // start a timer that will check every N ms to see if test messages
         // can be sent to kafka. If so, then start our listeners
         String testTopic = options.valueOf(heartbeatTopic);
+        USE_KAFKA = !options.has( keepStreamsOpen );
         try {
-            if (testTopic != null && !testTopic.trim().equals("")) {
+            if (testTopic != null && !testTopic.trim().equals("") && USE_KAFKA) {
                 ConnectionTestKafkaProducer.sendTest(options.valueOf(heartbeatTopic));
                 startListeners(testTopic, options.valueOf(decoderFrameSize));
             } else {

@@ -15,7 +15,8 @@ import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
-import com.krux.beacon.listener.kafka.producer.KafkaProducer;
+import com.fasterxml.jackson.jr.ob.JSON;
+import com.krux.kafka.producer.KafkaProducer;
 import com.krux.server.http.StdHttpServerHandler;
 import com.krux.stdlib.KruxStdLib;
 
@@ -31,6 +32,10 @@ public class BeaconListenerHandler extends SimpleChannelInboundHandler<String> {
     private static Map<String, Meter> rqsMeters = Collections.synchronizedMap(new HashMap<String, Meter>());
 
     private static final MetricRegistry metrics = new MetricRegistry();
+    
+    private static final Map<String,KafkaProducer> producers = Collections.synchronizedMap( 
+            new HashMap<String,KafkaProducer>() );
+    
 
     static {
         StdHttpServerHandler.addAdditionalStatus("last_msg_proc_time_nsec", lastTopicTimes);
@@ -46,46 +51,56 @@ public class BeaconListenerHandler extends SimpleChannelInboundHandler<String> {
     @Override
     public void channelRead0(ChannelHandlerContext ctx, String request) throws Exception {
 
-        long start = System.currentTimeMillis();
         long startNs = System.nanoTime();
-
-        // All we do here is take the incoming message and plop it onto the
-        // configured kafka topic(s). Too easy
+        long start = System.currentTimeMillis();
+        //let's see how often this happens
+        try {
+            Map<Object,Object> requestMap = JSON.std.mapFrom( request );
+        } catch ( Exception e ) {
+            LOG.error( "Cannot parse message as JSON", new String( request ) , e);
+            long time = System.currentTimeMillis() - start;
+            KruxStdLib.STATSD.time("message_json_parse_error", time);
+        }
+        
         if (LOG.isDebugEnabled()) {
             LOG.debug("Received message: " + request);
         }
+        
+        //each port of incoming data can be configured to push to more than one topic
         for (String topic : _topics) {
             try {
-                KafkaProducer.send(topic, request);
-                long time = System.currentTimeMillis() - start;
-                long timeNs = System.nanoTime() - startNs;
-                lastTopicTimes.put(topic, timeNs);
-                KruxStdLib.STATSD.time("message_processed." + topic, time);
-
-                Map<String, Object> qpsMap = new HashMap<String, Object>();
-                Meter m = rqsMeters.get(topic);
-                if (m == null) {
-                    m = metrics.meter(name(BeaconListenerHandler.class, topic + "_requests"));
-                    rqsMeters.put(topic, m);
+                if ( TCPStreamListenerServer.USE_KAFKA ) {
+                    KafkaProducer producer = producers.get( topic );
+                    if ( producer == null ) {
+                        //create new
+                        producer = new KafkaProducer( topic );
+                        producers.put( topic, producer );
+                    }
+                    producer.send(topic, request);
+                    long timeNs = System.nanoTime() - startNs;
+                    lastTopicTimes.put(topic, timeNs);
+    
+                    Map<String, Object> qpsMap = new HashMap<String, Object>();
+                    Meter m = rqsMeters.get(topic);
+                    if (m == null) {
+                        m = metrics.meter(name(BeaconListenerHandler.class, topic + "_requests"));
+                        rqsMeters.put(topic, m);
+                    }
+                    m.mark();
+                    qpsMap.put("count", m.getCount());
+                    qpsMap.put("1_min_rate", m.getOneMinuteRate());
+                    qpsMap.put("5_min_rate", m.getFiveMinuteRate());
+                    qpsMap.put("15_min_rate", m.getFifteenMinuteRate());
+                    qpsMap.put("mean_rate", m.getMeanRate());
+    
+                    rps.put(topic, qpsMap);
                 }
-                m.mark();
-                qpsMap.put("count", m.getCount());
-                qpsMap.put("1_min_rate", m.getOneMinuteRate());
-                qpsMap.put("5_min_rate", m.getFiveMinuteRate());
-                qpsMap.put("15_min_rate", m.getFifteenMinuteRate());
-                qpsMap.put("mean_rate", m.getMeanRate());
-
-                rps.put(topic, qpsMap);
             } catch (Exception e) {
                 LOG.error("Error trying to send message", e);
                 long time = System.currentTimeMillis() - start;
                 KruxStdLib.STATSD.time("message_error." + topic, time);
             }
         }
-
-        long time = System.currentTimeMillis() - start;
-        KruxStdLib.STATSD.time("message_processed_all", time);
-
     }
 
     @Override
