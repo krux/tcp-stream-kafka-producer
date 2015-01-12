@@ -55,6 +55,7 @@ public class BeaconListenerHandler extends SimpleChannelInboundHandler<String> {
         long start = System.currentTimeMillis();
         //let's see how often this happens
         try {
+            request = request.replace( "\\x", "\\u00" ); //"hex" escaping technically not allowed in JSON, only unicode
             Map<Object,Object> requestMap = JSON.std.mapFrom( request );
         } catch ( Exception e ) {
             LOG.error( "Cannot parse message as JSON", new String( request ) , e);

@@ -241,7 +241,12 @@ public class TCPStreamListenerServer {
 
             TCPStreamListenerServer.IS_RUNNING.set(true);
 
-            startConnChecker(testTopic, decoderFrameSize);
+            if ( USE_KAFKA ) {
+            	startConnChecker(testTopic, decoderFrameSize);
+            	StdHttpServerHandler.addAdditionalStatus( "sendingMessagesToKafka", true );
+            } else {
+            	StdHttpServerHandler.addAdditionalStatus( "sendingMessagesToKafka", false );
+            }
             StdHttpServerHandler.resetStatusCodeAndMessageOK();
 
             for (Thread t : SERVERS) {
