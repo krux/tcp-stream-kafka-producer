@@ -10,6 +10,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import joptsimple.OptionSet;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +38,8 @@ public class BeaconListenerHandler extends SimpleChannelInboundHandler<String> {
     private static final Map<String,KafkaProducer> producers = Collections.synchronizedMap( 
             new HashMap<String,KafkaProducer>() );
     
+    private OptionSet _options;
+    
 
     static {
         StdHttpServerHandler.addAdditionalStatus("last_msg_proc_time_nsec", lastTopicTimes);
@@ -44,8 +48,9 @@ public class BeaconListenerHandler extends SimpleChannelInboundHandler<String> {
 
     private List<String> _topics;
 
-    public BeaconListenerHandler(List<String> topics) {
+    public BeaconListenerHandler(List<String> topics, OptionSet options) {
         _topics = topics;
+        _options = options;
     }
 
     @Override
@@ -74,7 +79,8 @@ public class BeaconListenerHandler extends SimpleChannelInboundHandler<String> {
                     KafkaProducer producer = producers.get( topic );
                     if ( producer == null ) {
                         //create new
-                        producer = new KafkaProducer( topic );
+                        //producer = new KafkaProducer( topic );
+                    	producer = new KafkaProducer( _options, topic );
                         producers.put( topic, producer );
                     }
                     producer.send(topic, request);
