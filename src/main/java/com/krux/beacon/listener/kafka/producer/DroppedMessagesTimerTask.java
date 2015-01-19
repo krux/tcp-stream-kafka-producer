@@ -2,11 +2,11 @@ package com.krux.beacon.listener.kafka.producer;
 
 import java.util.TimerTask;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import kafka.producer.ProducerStats;
 import kafka.producer.ProducerStatsRegistry;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.krux.server.http.StdHttpServerHandler;
 import com.krux.stdlib.KruxStdLib;

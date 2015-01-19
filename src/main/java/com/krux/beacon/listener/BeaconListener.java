@@ -8,6 +8,8 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 import java.util.List;
 
+import joptsimple.OptionSet;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,11 +24,13 @@ public class BeaconListener implements Runnable {
     EventLoopGroup _bossGroup;
     EventLoopGroup _workerGroup;
     ChannelFuture _cf;
+    OptionSet _options;
 
-    public BeaconListener(Integer port, List<String> topics, int decoderFrameSize) {
+    public BeaconListener(Integer port, List<String> topics, int decoderFrameSize, OptionSet options) {
         _port = port;
         _topics = topics;
         _decoderFrameSize = decoderFrameSize;
+        _options = options;
     }
 
     @Override
@@ -37,7 +41,7 @@ public class BeaconListener implements Runnable {
         try {
             _b = new ServerBootstrap();
             _b.group(_bossGroup, _workerGroup).channel(NioServerSocketChannel.class)
-                    .childHandler(new BeaconListenerInitializer(_topics, _decoderFrameSize));
+                    .childHandler(new BeaconListenerInitializer(_topics, _decoderFrameSize, _options));
 
             _cf = _b.bind(_port).sync();
             _cf.channel().closeFuture().sync();
