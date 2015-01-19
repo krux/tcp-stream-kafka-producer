@@ -2,6 +2,8 @@ package com.krux.beacon.listener.kafka.producer;
 
 import java.util.TimerTask;
 
+import joptsimple.OptionSet;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,10 +19,12 @@ public class TestKafkaConnTimerTask extends TimerTask {
 
     private String _testTopic;
     private int _decoderFrameSize;
+    private OptionSet _options;
 
-    public TestKafkaConnTimerTask(String topic, int decoderFrameSize) {
+    public TestKafkaConnTimerTask(String topic, int decoderFrameSize, OptionSet options ) {
         _testTopic = topic;
         _decoderFrameSize = decoderFrameSize;
+        _options = options;
     }
 
     @Override
@@ -34,7 +38,7 @@ public class TestKafkaConnTimerTask extends TimerTask {
                 KruxStdLib.STATSD.count("listener_restart");
                 LOG.warn("Restarting listeners.");
                 TCPStreamListenerServer.RESET_CONN_TIMER.set(true);
-                TCPStreamListenerServer.startListeners(_testTopic, _decoderFrameSize);
+                TCPStreamListenerServer.startListeners(_testTopic, _decoderFrameSize, _options);
             }
 
         } catch (Exception e) {

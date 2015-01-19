@@ -10,6 +10,8 @@ import io.netty.handler.codec.string.StringEncoder;
 
 import java.util.List;
 
+import joptsimple.OptionSet;
+
 /**
  * Creates a newly configured {@link ChannelPipeline} for a new channel.
  */
@@ -20,10 +22,12 @@ public class BeaconListenerInitializer extends ChannelInitializer<SocketChannel>
 
     private List<String> _topics;
     private int _decoderFrameSize;
+    private OptionSet _options;
 
-    public BeaconListenerInitializer(List<String> topics, int decoderFrameSize) {
+    public BeaconListenerInitializer(List<String> topics, int decoderFrameSize, OptionSet options) {
         _topics = topics;
         _decoderFrameSize = decoderFrameSize;
+        _options = options;
     }
 
     @Override
@@ -37,6 +41,6 @@ public class BeaconListenerInitializer extends ChannelInitializer<SocketChannel>
         pipeline.addLast(ENCODER);
 
         // and then business logic.
-        pipeline.addLast(new BeaconListenerHandler(_topics));
+        pipeline.addLast(new BeaconListenerHandler(_topics, _options));
     }
 }
