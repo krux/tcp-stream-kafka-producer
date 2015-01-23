@@ -25,8 +25,7 @@ public class ConnectionTestKafkaProducer {
         // parsing the command line options
         props.put("metadata.broker.list", System.getProperty("metadata.broker.list", "localhost:9092"));
         props.put("serializer.class", System.getProperty("serializer.class", "kafka.serializer.StringEncoder"));
-        props.put("partitioner.class",
-                System.getProperty("partitioner.class", "com.krux.kafka.producer.SimplePartitioner"));
+        props.put("partitioner.class", System.getProperty("partitioner.class", "com.krux.kafka.producer.SimplePartitioner"));
         props.put("producer.type", "sync");
         props.put("message.send.max.retries", "0");
 
@@ -38,8 +37,9 @@ public class ConnectionTestKafkaProducer {
     public static void sendTest(String topic) {
         long start = System.currentTimeMillis();
         KeyedMessage<String, String> data = new KeyedMessage<String, String>(topic, "", "This is a test");
-        LOG.info("Sending test message");
+        LOG.debug("Sending test message to {}", topic);
         PRODUCER.send(data);
+        LOG.debug("SENT test message to {}", topic);
         long time = System.currentTimeMillis() - start;
         KruxStdLib.STATSD.time("test_message_sent", time);
     }

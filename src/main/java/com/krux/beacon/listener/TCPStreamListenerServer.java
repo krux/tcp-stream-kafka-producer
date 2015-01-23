@@ -52,7 +52,13 @@ public class TCPStreamListenerServer {
     private static Timer DROPPED_MESSAGES_TIMER = new Timer();
     public static List<BeaconListener> LISTENERS = new ArrayList<BeaconListener>();
 
-    public static boolean USE_KAFKA;
+    // By default, the listener will close its in bound tcp streams when Kafka
+    // isn't available.
+    // Via the command line,(--always-accept-streams) the listener can be
+    // configured to just drop messages when
+    // kafka is not available.
+    public static boolean ALWAYS_ACCEPT_STREAMS = false;
+    public static boolean SEND_TO_KAFKA = true;
 
     public static void main(String[] args) throws InterruptedException {
 
@@ -71,7 +77,10 @@ public class TCPStreamListenerServer {
                 .accepts("heartbeat-topic",
                         "The name of a topic to be used for general connection checking, kafka aliveness, etc.")
                 .withOptionalArg().ofType(String.class).defaultsTo("");
-        OptionSpec keepStreamsOpen = parser.accepts( "always-accept-streams", "Forces the listener to keep incoming stream ports open even when no kafka nodes are reachable. Intended for use during kafka upgrades." );
+        OptionSpec keepStreamsOpen = parser
+                .accepts(
+                        "always-accept-streams",
+                        "Forces the listener to keep incoming stream ports open even when no kafka nodes are reachable. Intended for use during kafka upgrades.");
 
         // give parser to KruxStdLib so it can add our params to the reserved
         // list
@@ -80,9 +89,14 @@ public class TCPStreamListenerServer {
         desc.append("\nKrux Kafka Stream Listener\n");
         desc.append("**************************\n");
         desc.append("Will pass incoming newline-delimitted messages on tcp streams to mapped Kafka topics.\n");
-        
+
         KafkaProducer.addStandardOptionsToParser(parser);
         OptionSet options = KruxStdLib.initialize(desc.toString(), args);
+        String testTopic = options.valueOf(heartbeatTopic);
+        ALWAYS_ACCEPT_STREAMS = options.has(keepStreamsOpen);
+
+        LOG.debug("ALWAYS_ACCEPT_STREAMS: {}", ALWAYS_ACCEPT_STREAMS);
+        LOG.debug("SEND_TO_KAFKA: {}", SEND_TO_KAFKA);
 
         // parse the configured port -> topic mappings, put in global hashmap
         Map<OptionSpec<?>, List<?>> optionMap = options.asMap();
@@ -106,18 +120,26 @@ public class TCPStreamListenerServer {
 
         // start a timer that will check every N ms to see if test messages
         // can be sent to kafka. If so, then start our listeners
-        String testTopic = options.valueOf(heartbeatTopic);
-        USE_KAFKA = !options.has( keepStreamsOpen );
+
         try {
-            if (testTopic != null && !testTopic.trim().equals("") && USE_KAFKA) {
-                ConnectionTestKafkaProducer.sendTest(options.valueOf(heartbeatTopic));
-                startListeners(testTopic, options.valueOf(decoderFrameSize), options);
-            } else {
-                startListeners(testTopic, options.valueOf(decoderFrameSize), options);
+            if (testTopic != null && !testTopic.trim().equals("")) {
+                try {
+                    ConnectionTestKafkaProducer.sendTest(options.valueOf(heartbeatTopic));
+                    startListeners(testTopic, options.valueOf(decoderFrameSize), options);
+                } catch (Exception e) {
+                    if (ALWAYS_ACCEPT_STREAMS) {
+                        startListeners(testTopic, options.valueOf(decoderFrameSize), options);
+                    } else {
+                        StdHttpServerHandler.setStatusCodeAndMessage(AppState.FAILURE,
+                                "Kafka unavailable: " + e.getMessage());
+                        LOG.error("Cannot start listeners", e);
+                        startConnChecker(testTopic, options.valueOf(decoderFrameSize), options);
+                    }
+                }
             }
         } catch (Exception e) {
-            StdHttpServerHandler.setStatusCodeAndMessage(AppState.FAILURE, "Cannot start listeners: " + e.getMessage());
-            System.err.println("Cannot start listeners.");
+            if (ALWAYS_ACCEPT_STREAMS)
+                StdHttpServerHandler.setStatusCodeAndMessage(AppState.FAILURE, "Kafka unavailable: " + e.getMessage());
             LOG.error("Cannot start listeners", e);
             startConnChecker(testTopic, options.valueOf(decoderFrameSize), options);
         }
@@ -164,12 +186,7 @@ public class TCPStreamListenerServer {
 
             TCPStreamListenerServer.IS_RUNNING.set(true);
 
-            if ( USE_KAFKA ) {
-            	startConnChecker(testTopic, decoderFrameSize, options);
-            	StdHttpServerHandler.addAdditionalStatus( "sendingMessagesToKafka", true );
-            } else {
-            	StdHttpServerHandler.addAdditionalStatus( "sendingMessagesToKafka", false );
-            }
+            startConnChecker(testTopic, decoderFrameSize, options);
             StdHttpServerHandler.resetStatusCodeAndMessageOK();
 
             for (Thread t : SERVERS) {
@@ -194,12 +211,12 @@ public class TCPStreamListenerServer {
             if (CONNECTION_TEST_TIMER == null) {
                 LOG.info("testTopic is not null but timer was null");
                 CONNECTION_TEST_TIMER = new Timer();
-                
+
                 TestKafkaConnTimerTask tt = new TestKafkaConnTimerTask(testTopic, decoderFrameSize, options);
                 CONNECTION_TEST_TIMER.schedule(tt, 5000, 1000);
 
                 DroppedMessagesTimerTask dmtt = new DroppedMessagesTimerTask();
-                DROPPED_MESSAGES_TIMER.schedule(dmtt, 30000, (60*1000*15));
+                DROPPED_MESSAGES_TIMER.schedule(dmtt, 30000, (60 * 1000 * 10));
             } else {
                 LOG.info("testTopic is not null AND timer was not null");
                 if (RESET_CONN_TIMER.get()) {

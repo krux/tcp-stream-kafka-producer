@@ -38,21 +38,30 @@ public class TestKafkaConnTimerTask extends TimerTask {
                 KruxStdLib.STATSD.count("listener_restart");
                 LOG.warn("Restarting listeners.");
                 TCPStreamListenerServer.RESET_CONN_TIMER.set(true);
-                TCPStreamListenerServer.startListeners(_testTopic, _decoderFrameSize, _options);
+                TCPStreamListenerServer.startListeners(_testTopic, _decoderFrameSize, _options);  
             }
+            TCPStreamListenerServer.SEND_TO_KAFKA = true;
+            StdHttpServerHandler.resetStatusCodeAndMessageOK();
 
         } catch (Exception e) {
             LOG.error("Cannot send test message", e);
             KruxStdLib.STATSD.count("heartbeat_topic_failure");
             if (TCPStreamListenerServer.IS_RUNNING.get()) {
-                KruxStdLib.STATSD.count("listener_stopping_test_topic_failure");
-                LOG.error("Stopping listeners");
-                for (BeaconListener listener : TCPStreamListenerServer.LISTENERS) {
-                    listener.stop();
+                
+                if ( !TCPStreamListenerServer.ALWAYS_ACCEPT_STREAMS ) {
+                	KruxStdLib.STATSD.count("listener_stopping_test_topic_failure");
+	                LOG.error("Stopping listeners");
+	                for (BeaconListener listener : TCPStreamListenerServer.LISTENERS) {
+	                    listener.stop();
+	                }
+	                TCPStreamListenerServer.IS_RUNNING.set(false);
+	                StdHttpServerHandler.setStatusCodeAndMessage(AppState.FAILURE, "Test message failed, listeners stopped");
+                } else {
+                	TCPStreamListenerServer.SEND_TO_KAFKA = false;
+                	KruxStdLib.STATSD.count("listener_stopping_test_topic_failure");
+	                StdHttpServerHandler.setStatusCodeAndMessage(AppState.WARNING, "Test message failed, listeners running but dropping messages");                	
                 }
-                TCPStreamListenerServer.IS_RUNNING.set(false);
-                StdHttpServerHandler.setStatusCodeAndMessage(AppState.FAILURE, "Test message failed, listeners stopped: "
-                        + e.getMessage());
+
             } else {
                 LOG.info("Listeners not running, will not attempt to start them");
             }
