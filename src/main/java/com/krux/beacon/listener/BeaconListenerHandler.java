@@ -70,7 +70,7 @@ public class BeaconListenerHandler extends SimpleChannelInboundHandler<String> {
             LOG.error("Cannot parse message as JSON", new String(request), e);
             long time = System.currentTimeMillis() - start;
             String mainTopic = _topics.get(0);
-            KruxStdLib.STATSD.time("message_json_parse_error." + mainTopic, time);
+            KruxStdLib.STATSD.time("errors.message_json_parse_error." + mainTopic, time);
         }
 
         if (LOG.isDebugEnabled()) {
