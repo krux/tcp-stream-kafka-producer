@@ -69,11 +69,12 @@ public class BeaconListenerHandler extends SimpleChannelInboundHandler<String> {
         } catch (Exception e) {
             LOG.error("Cannot parse message as JSON", new String(request), e);
             long time = System.currentTimeMillis() - start;
-            KruxStdLib.STATSD.time("message_json_parse_error", time);
+            String mainTopic = _topics.get(0);
+            KruxStdLib.STATSD.time("message_json_parse_error." + mainTopic, time);
         }
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Received message: " + request);
+            LOG.debug("Received message: {}", request);
         }
 
         LOG.debug("ALWAYS_ACCEPT_STREAMS: {}", TCPStreamListenerServer.ALWAYS_ACCEPT_STREAMS);
