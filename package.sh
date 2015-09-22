@@ -8,19 +8,19 @@ cd $MY_DIR
 rm -fr *.deb
 
 ### Name of the package, project, etc
-NAME=krux-kafka-stream-listener
+NAME=krux-tcp-stream-kafka-producer
 
 ### The directory that the build is done in
 TARGET=target
-
-### List of files to package
-FILES=kafka-stream-listener-full.jar
 
 ### package version
 ### XXX surely there's a maven command or something?
 VERSION=$(grep version pom.xml | head -1 | perl -pe 's/[^\d.]//g')
 PACKAGE_VERSION=$VERSION~krux$( date -u +%Y%m%d%H%M )
 PACKAGE_NAME=$NAME
+
+### List of files to package
+FILES=krux-tcp-stream-kafka-producer-$VERSION-full.jar
 
 ### Where this package will be installed
 DEST_DIR="/usr/local/${NAME}/"
