@@ -1,5 +1,7 @@
 package com.krux.beacon.listener.kafka.producer;
 
+import com.krux.stdlib.KruxStdLib;
+
 import kafka.common.FailedToSendMessageException;
 import kafka.producer.KeyedMessage;
 import kafka.producer.Partitioner;
@@ -9,8 +11,6 @@ import kafka.producer.async.DefaultEventHandler;
 import kafka.serializer.Encoder;
 import scala.collection.Seq;
 import scala.collection.mutable.HashMap;
-
-import com.krux.stdlib.KruxStdLib;
 
 public class KruxProducerEventHandler extends DefaultEventHandler<String, String> {
 
