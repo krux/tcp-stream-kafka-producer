@@ -1,7 +1,7 @@
 TCP Stream Kafka Producer
 ==============================
 
-The TCP Stream converter does a very simple job well: it takes a configurable list of TCP port/Kafka topic tuples on the command-line, and for each pair, it opens the TCP port, splits the incoming stream on newlines, and places the resultant chunks onto the configured Kafka topic.  By default, if/when the configured Kafka cluster becomes unavailable, the Stream Listener will automatically close its TCP ports, and will reopen them again once the cluster is avaialble again.  This behavior can easily be overidden.  Like all of Krux' open-sourced Java libraries, it's built atop the [Krux Standard Java Library](https://github.com/krux/java-stdlib), and produces a bevy of useful usage stats.
+The TCP Stream converter does a very simple job well: it takes a configurable list of TCP port/Kafka topic tuples on the command-line, and for each pair, it opens the TCP port, splits the incoming stream on newlines, and places the resultant chunks onto the configured Kafka topic(s).  By default, if/when the configured Kafka cluster becomes unavailable, the Stream Listener will automatically close its TCP ports, and will reopen them again once the cluster is available again.  This behavior can easily be overridden.  Like all of Krux' open-sourced Java libraries, it's built atop the [Krux Standard Java Library](https://github.com/krux/java-stdlib), and produces a bevy of useful usage statistics.
 
 Port -> topic mappings are specified via the --port.topic command line option, and nearly all of the configurable [Kafka producer settings](http://kafka.apache.org/documentation.html#producerconfigs) are accessible via command line options.  
 
@@ -9,7 +9,7 @@ Optionally, an HTTP listener will be started and respond to HTTP requests with d
 
     curl localhost:9080/__status | jq .
 
-Also optionally, a `--heartbeat-topic` option may be passed.  This topic name will be used for "heartbeat" checks of the Kafka cluster.  When that topic cannot be written to, all open TCP listening ports will be closed until the Kafka cluster is available again (allowing upstream handlers to route around this listener).
+Also optionally, a `--heartbeat-topic` option may be passed.  This topic name will be used for "heart beat" checks of the Kafka cluster.  When that topic cannot be written to, all open TCP listening ports will be closed until the Kafka cluster is available again (allowing upstream handlers to route around this listener).
 
 Example command line:
 
@@ -23,13 +23,13 @@ Documentation for all command-line configuration options are available by passin
 
 Krux Kafka Stream Listener
 **************************
-Will pass incoming eol-delimitted messages on tcp streams to mapped Kafka topics.
+Will pass incoming eol-delimited messages on TCP streams to mapped Kafka topics.
 
 Option                                       Description                                              
 ------                                       -----------                                              
 --app-name                                   Application identifier, used for statsd namespaces, log  
                                                file names, etc. If not supplied, will use this app's  
-                                               entry point classname. (default:                       
+                                               entry point class name. (default:                       
                                                TCPStreamListenerServer)                               
 --base-dir                                   Base directory for app needs. (default: /tmp)            
 --batch.num.messages [Integer]               The number of messages to send in one batch when using   
