@@ -13,7 +13,7 @@ Also optionally, a `--heartbeat-topic` option may be passed.  This topic name wi
 
 Example command line:
 
-    java -jar kafka-stream-listener-full.jar --http-port 9080 --port.topic 1543:topic1,topic2,topic3 --port.topic 32344:topic4 --stats --env prod --http-port 8082 --heartbeat-topic TEST_CONN
+    java -jar krux-tcp-stream-kafka-producer-1.3.0-full.jar --http-port 9080 --port.topic 1543:topic1,topic2,topic3 --port.topic 32344:topic4 --stats --env prod --http-port 8082 --heartbeat-topic TEST_CONN
 
 
 Documentation for all command-line configuration options are available by passing `-h` or `--help` to the jar
