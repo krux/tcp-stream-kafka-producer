@@ -114,3 +114,7 @@ Option                                       Description
 --stats-host                                 Listening statsd host (default: localhost)               
 --stats-port [Integer]                       Listening statsd port (default: 8125) 
 ```
+
+Releases
+--------
+Latest stable binary releases can be downloaded from the [Releases](https://github.com/krux/tcp-stream-kafka-producer/releases) tab above.
