@@ -6,9 +6,9 @@ The TCP Kafka Producer does a very simple job: it takes a configurable list of T
 Use
 ---
 
-The TCP Kafka Producer is a stand-alone jar meant to executed on the command line. TCP port -> topic mappings are specified via the `--port.topic` command-line option, and nearly all of the configurable [Kafka producer settings](http://kafka.apache.org/documentation.html#producerconfigs) are also accessible via command-line options.  
+The TCP Kafka Producer is a stand-alone jar intended to be executed from the command line. TCP port -> topic mappings are specified via the `--port.topic` command-line option, and nearly all of the configurable [Kafka producer settings](http://kafka.apache.org/documentation.html#producerconfigs) are also accessible via command-line options.  
 
-Optionally, an HTTP listener will be started and respond to HTTP requests with details about the application's performance and health. To use the HTTP status check endpoint, pass an `--http-port` parameter on the command line.  Once the process is running, you can get detailed per-topic message processing rates by requesting "/__status" from the configured port.  For example, if you pass `--http-port 9080`, stats would be available via...
+Optionally, an HTTP listener can be started to respond to HTTP requests with details about the application's performance and health. To use the HTTP status check endpoint, pass an `--http-port` parameter on the command line.  Once the process is running, you can get detailed per-topic message processing rates by requesting "/__status" from the configured port.  For example, if you pass `--http-port 9080`, statistics would be available via...
 
     curl localhost:9080/__status | jq .
 
