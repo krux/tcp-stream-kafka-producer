@@ -1,23 +1,26 @@
-java-tcp-stream-listener
-========================
+TCP Stream Kafka Producer
+==============================
 
-Listens on configurable port(s) and splits incoming TCP stream(s) on newlines into individual Kafka messages, places them on configurable topics.  Port -> topic mappings are specified via the --port.topic cl option.
+Listens on configurable port(s) and splits incoming TCP stream(s) on newlines into individual Kafka messages, placing them on configurable topics.  Port -> topic mappings are specified via the --port.topic command line option.
 
-Nearly all of the configurable Kafka producer settings are accesible via cl options.  We'll hone performance and throughput as we go.
+Nearly all of the configurable [Kafka producer settings](http://kafka.apache.org/documentation.html#producerconfigs) are accessible via command line options.  
 
-Optionally, an HTTP listener will be started and respond to __status calls with the app's status.
+Optionally, an HTTP listener will be started and respond to __status calls with the app's status. To use the HTTP status check endpoint, pass an `--http-port` parameter on the command line.  Once the process is running, you can get detailed per-topic message processing rates by requesting "/__status" from the configured port.  For example, if you pass `--http-port 9080`, stats would be available via...
 
-Also optionally, a --heartbeat-topic option may be passed.  This topic name will be used for "heartbeat" checks of the Kafka cluster.  When that topic cannot be written to, all open TCP listening ports will be closed until the Kafka cluster is available again (allowing upstream handlers to route around this listener).
+    curl localhost:9080/__status | jq .
+
+Also optionally, a `--heartbeat-topic` option may be passed.  This topic name will be used for "heartbeat" checks of the Kafka cluster.  When that topic cannot be written to, all open TCP listening ports will be closed until the Kafka cluster is available again (allowing upstream handlers to route around this listener).
 
 Example command line:
 
-```
-java -jar kafka-stream-listener-full.jar --port.topic 1543:topic1,topic2,topic3 --port.topic 32344:topic4 --app-name tcp-stream-kafka-listener --stats --stats-environment cass-dev --http-port 8082 --heartbeat-topic TEST_CONN
-```
+    java -jar kafka-stream-listener-full.jar --http-port 9080 --port.topic 1543:topic1,topic2,topic3 --port.topic 32344:topic4 --stats --env prod --http-port 8082 --heartbeat-topic TEST_CONN
 
-Output from --help:
+
+Documentation for all command-line configuration options are available by passing `-h` or `--help` to the jar
 
 ```
+~/$  java -jar krux-tcp-stream-kafka-producer-1.3.0-full.jar --help
+
 Krux Kafka Stream Listener
 **************************
 Will pass incoming eol-delimitted messages on tcp streams to mapped Kafka topics.

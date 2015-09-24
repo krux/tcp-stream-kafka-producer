@@ -1,16 +1,11 @@
 package com.krux.beacon.listener;
 
 import static com.codahale.metrics.MetricRegistry.name;
-import io.netty.channel.ChannelHandler.Sharable;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import joptsimple.OptionSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +17,11 @@ import com.krux.beacon.listener.kafka.producer.DroppedMessagesTimerTask;
 import com.krux.kafka.producer.KafkaProducer;
 import com.krux.server.http.StdHttpServerHandler;
 import com.krux.stdlib.KruxStdLib;
+
+import io.netty.channel.ChannelHandler.Sharable;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.SimpleChannelInboundHandler;
+import joptsimple.OptionSet;
 
 /**
  * Handles a server-side channel.

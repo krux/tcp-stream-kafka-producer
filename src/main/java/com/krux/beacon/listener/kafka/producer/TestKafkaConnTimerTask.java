@@ -2,8 +2,6 @@ package com.krux.beacon.listener.kafka.producer;
 
 import java.util.TimerTask;
 
-import joptsimple.OptionSet;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,6 +11,8 @@ import com.krux.server.http.AppState;
 import com.krux.server.http.StdHttpServerHandler;
 import com.krux.stdlib.KruxStdLib;
 
+import joptsimple.OptionSet;
+
 public class TestKafkaConnTimerTask extends TimerTask {
 
     private static final Logger LOG = LoggerFactory.getLogger(TestKafkaConnTimerTask.class.getName());
@@ -21,7 +21,7 @@ public class TestKafkaConnTimerTask extends TimerTask {
     private int _decoderFrameSize;
     private OptionSet _options;
 
-    public TestKafkaConnTimerTask(String topic, int decoderFrameSize, OptionSet options ) {
+    public TestKafkaConnTimerTask(String topic, int decoderFrameSize, OptionSet options) {
         _testTopic = topic;
         _decoderFrameSize = decoderFrameSize;
         _options = options;
@@ -38,7 +38,7 @@ public class TestKafkaConnTimerTask extends TimerTask {
                 KruxStdLib.STATSD.count("listener_restart");
                 LOG.warn("Restarting listeners.");
                 TCPStreamListenerServer.RESET_CONN_TIMER.set(true);
-                TCPStreamListenerServer.startListeners(_testTopic, _decoderFrameSize, _options);  
+                TCPStreamListenerServer.startListeners(_testTopic, _decoderFrameSize, _options);
             }
             TCPStreamListenerServer.SEND_TO_KAFKA = true;
             StdHttpServerHandler.resetStatusCodeAndMessageOK();
@@ -47,19 +47,20 @@ public class TestKafkaConnTimerTask extends TimerTask {
             LOG.error("Cannot send test message", e);
             KruxStdLib.STATSD.count("heartbeat_topic_failure");
             if (TCPStreamListenerServer.IS_RUNNING.get()) {
-                
-                if ( !TCPStreamListenerServer.ALWAYS_ACCEPT_STREAMS ) {
-                	KruxStdLib.STATSD.count("listener_stopping_test_topic_failure");
-	                LOG.error("Stopping listeners");
-	                for (BeaconListener listener : TCPStreamListenerServer.LISTENERS) {
-	                    listener.stop();
-	                }
-	                TCPStreamListenerServer.IS_RUNNING.set(false);
-	                StdHttpServerHandler.setStatusCodeAndMessage(AppState.FAILURE, "Test message failed, listeners stopped");
+
+                if (!TCPStreamListenerServer.ALWAYS_ACCEPT_STREAMS) {
+                    KruxStdLib.STATSD.count("listener_stopping_test_topic_failure");
+                    LOG.error("Stopping listeners");
+                    for (BeaconListener listener : TCPStreamListenerServer.LISTENERS) {
+                        listener.stop();
+                    }
+                    TCPStreamListenerServer.IS_RUNNING.set(false);
+                    StdHttpServerHandler.setStatusCodeAndMessage(AppState.FAILURE, "Test message failed, listeners stopped");
                 } else {
-                	TCPStreamListenerServer.SEND_TO_KAFKA = false;
-                	KruxStdLib.STATSD.count("listener_stopping_test_topic_failure");
-	                StdHttpServerHandler.setStatusCodeAndMessage(AppState.WARNING, "Test message failed, listeners running but dropping messages");                	
+                    TCPStreamListenerServer.SEND_TO_KAFKA = false;
+                    KruxStdLib.STATSD.count("listener_stopping_test_topic_failure");
+                    StdHttpServerHandler.setStatusCodeAndMessage(AppState.WARNING,
+                            "Test message failed, listeners running but dropping messages");
                 }
 
             } else {

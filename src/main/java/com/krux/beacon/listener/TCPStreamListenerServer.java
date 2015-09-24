@@ -7,10 +7,6 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import joptsimple.OptionParser;
-import joptsimple.OptionSet;
-import joptsimple.OptionSpec;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,9 +18,13 @@ import com.krux.server.http.AppState;
 import com.krux.server.http.StdHttpServerHandler;
 import com.krux.stdlib.KruxStdLib;
 
+import joptsimple.OptionParser;
+import joptsimple.OptionSet;
+import joptsimple.OptionSpec;
+
 /**
  * Listens on configurable port(s) and splits incoming TCP stream(s) on newlines
- * into individual Kafka messages, places them on configurable queues. Port ->
+ * into individual Kafka messages, places them on configurable queues. Port-to-
  * topic mappings are specified via the --port.topic cl option.
  * 
  * Optionally, an HTTP listener will be started and respond to __status calls
@@ -66,8 +66,7 @@ public class TCPStreamListenerServer {
         OptionParser parser = new OptionParser();
 
         OptionSpec<String> portTopicMappings = parser
-                .accepts(
-                        "port.topic",
+                .accepts("port.topic",
                         "The port->topic mappings (ex: 1234:topic1[,topic2])  Specify multiple mappings with multiple cl options.\n  e.g.: --port.topic 1234:topic1[,topic2] --port.topic 4567:topic3[,topic4]")
                 .withRequiredArg().ofType(String.class);
         OptionSpec<Integer> decoderFrameSize = parser
@@ -77,10 +76,8 @@ public class TCPStreamListenerServer {
                 .accepts("heartbeat-topic",
                         "The name of a topic to be used for general connection checking, kafka aliveness, etc.")
                 .withOptionalArg().ofType(String.class).defaultsTo("");
-        OptionSpec keepStreamsOpen = parser
-                .accepts(
-                        "always-accept-streams",
-                        "Forces the listener to keep incoming stream ports open even when no kafka nodes are reachable. Intended for use during kafka upgrades.");
+        OptionSpec keepStreamsOpen = parser.accepts("always-accept-streams",
+                "Forces the listener to keep incoming stream ports open even when no kafka nodes are reachable. Intended for use during kafka upgrades.");
 
         // give parser to KruxStdLib so it can add our params to the reserved
         // list

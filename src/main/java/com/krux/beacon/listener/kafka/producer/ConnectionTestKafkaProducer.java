@@ -2,14 +2,14 @@ package com.krux.beacon.listener.kafka.producer;
 
 import java.util.Properties;
 
-import kafka.javaapi.producer.Producer;
-import kafka.producer.KeyedMessage;
-import kafka.producer.ProducerConfig;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.krux.stdlib.KruxStdLib;
+
+import kafka.javaapi.producer.Producer;
+import kafka.producer.KeyedMessage;
+import kafka.producer.ProducerConfig;
 
 public class ConnectionTestKafkaProducer {
 
