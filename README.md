@@ -1,9 +1,12 @@
 TCP Stream Kafka Producer
 ==============================
 
-The TCP Stream converter does a very simple job well: it takes a configurable list of TCP port/Kafka topic tuples on the command-line, and for each pair, it opens the TCP port, splits the incoming stream on newlines, and places the resultant chunks onto the configured Kafka topic(s).  By default, if/when the configured Kafka cluster becomes unavailable, the Stream Listener will automatically close its TCP ports, and will reopen them again once the cluster is available again.  This behavior can easily be overridden.  Like all of Krux' open-sourced Java libraries, it's built atop the [Krux Standard Java Library](https://github.com/krux/java-stdlib), and produces a bevy of useful usage statistics.
+The TCP Kafka Producer does a very simple job: it takes a configurable list of TCP port/Kafka topic tuples on the command-line, and for each pair, it opens the TCP port, splits the incoming stream on newlines, and places the resultant chunks onto the configured Kafka topic(s).  By default, if/when the configured Kafka cluster becomes unavailable, the Stream Listener will automatically close its TCP port(s), and will reopen them again when the cluster becomes available.  This behavior can easily be overridden.  Like all of Krux' open-sourced Java libraries, it's built atop the [Krux Standard Java Library](https://github.com/krux/java-stdlib), and produces a bevy of useful usage statistics.
 
-Port -> topic mappings are specified via the --port.topic command line option, and nearly all of the configurable [Kafka producer settings](http://kafka.apache.org/documentation.html#producerconfigs) are accessible via command line options.  
+Use
+---
+
+The TCP Kafka Producer is a stand-alone jar meant to executed on the command line. TCP port -> topic mappings are specified via the `--port.topic` command-line option, and nearly all of the configurable [Kafka producer settings](http://kafka.apache.org/documentation.html#producerconfigs) are also accessible via command-line options.  
 
 Optionally, an HTTP listener will be started and respond to HTTP requests with details about the application's performance and health. To use the HTTP status check endpoint, pass an `--http-port` parameter on the command line.  Once the process is running, you can get detailed per-topic message processing rates by requesting "/__status" from the configured port.  For example, if you pass `--http-port 9080`, stats would be available via...
 
@@ -11,7 +14,7 @@ Optionally, an HTTP listener will be started and respond to HTTP requests with d
 
 Also optionally, a `--heartbeat-topic` option may be passed.  This topic name will be used for "heart beat" checks of the Kafka cluster.  When that topic cannot be written to, all open TCP listening ports will be closed until the Kafka cluster is available again (allowing upstream handlers to route around this listener).
 
-Example command line:
+Example command-line:
 
     java -jar krux-tcp-stream-kafka-producer-1.3.0-full.jar --http-port 9080 --port.topic 1543:topic1,topic2,topic3 --port.topic 32344:topic4 --stats --env prod --http-port 8082 --heartbeat-topic TEST_CONN
 
