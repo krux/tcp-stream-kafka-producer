@@ -1,11 +1,11 @@
 TCP Stream Kafka Producer
 ==============================
 
-Listens on configurable port(s) and splits incoming TCP stream(s) on newlines into individual Kafka messages, placing them on configurable topics.  Port -> topic mappings are specified via the --port.topic command line option.
+The TCP Stream converter does a very simple job well: it takes a configurable list of TCP port/Kafka topic tuples on the command-line, and for each pair, it opens the TCP port, splits the incoming stream on newlines, and places the resultant chunks onto the configured Kafka topic.  By default, if/when the configured Kafka cluster becomes unavailable, the Stream Listener will automatically close its TCP ports, and will reopen them again once the cluster is avaialble again.  This behavior can easily be overidden.  Like all of Krux' open-sourced Java libraries, it's built atop the [Krux Standard Java Library](https://github.com/krux/java-stdlib), and produces a bevy of useful usage stats.
 
-Nearly all of the configurable [Kafka producer settings](http://kafka.apache.org/documentation.html#producerconfigs) are accessible via command line options.  
+Port -> topic mappings are specified via the --port.topic command line option, and nearly all of the configurable [Kafka producer settings](http://kafka.apache.org/documentation.html#producerconfigs) are accessible via command line options.  
 
-Optionally, an HTTP listener will be started and respond to __status calls with the app's status. To use the HTTP status check endpoint, pass an `--http-port` parameter on the command line.  Once the process is running, you can get detailed per-topic message processing rates by requesting "/__status" from the configured port.  For example, if you pass `--http-port 9080`, stats would be available via...
+Optionally, an HTTP listener will be started and respond to HTTP requests with details about the application's performance and health. To use the HTTP status check endpoint, pass an `--http-port` parameter on the command line.  Once the process is running, you can get detailed per-topic message processing rates by requesting "/__status" from the configured port.  For example, if you pass `--http-port 9080`, stats would be available via...
 
     curl localhost:9080/__status | jq .
 
