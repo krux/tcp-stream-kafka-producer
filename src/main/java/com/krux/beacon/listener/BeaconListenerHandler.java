@@ -59,19 +59,6 @@ public class BeaconListenerHandler extends SimpleChannelInboundHandler<String> {
 
         long startNs = System.nanoTime();
         long start = System.currentTimeMillis();
-        // let's see how often this happens
-        try {
-            request = request.replace("\\x", "\\u00"); // "hex" escaping
-                                                       // technically not
-                                                       // allowed in JSON, only
-                                                       // unicode
-            JSON.std.mapFrom(request);
-        } catch (Exception e) {
-            LOG.error("Cannot parse message as JSON", new String(request), e);
-            long time = System.currentTimeMillis() - start;
-            String mainTopic = _topics.get(0);
-            KruxStdLib.STATSD.time("errors.json_parse." + mainTopic, time);
-        }
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("Received message: {}", request);
