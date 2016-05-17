@@ -106,7 +106,6 @@ public class BeaconListenerHandler extends SimpleChannelInboundHandler<String> {
             long time = System.currentTimeMillis() - start;
             KruxStdLib.STATSD.time("message_processed_all", time);
         } else {
-            long time = System.currentTimeMillis() - start;
             DroppedMessagesTimerTask.droppedMessages.incrementAndGet();
             Map<String, Object> errorMap = new HashMap<String, Object>();
             droppedMessasgesMeter.mark();
@@ -116,8 +115,8 @@ public class BeaconListenerHandler extends SimpleChannelInboundHandler<String> {
             errorMap.put("15_min_rate", droppedMessasgesMeter.getFifteenMinuteRate());
             errorMap.put("mean_rate", droppedMessasgesMeter.getMeanRate());
             StdHttpServerHandler.addAdditionalStatus("dropped_message_rates", errorMap);
-            StdHttpServerHandler.addAdditionalStatus("msgs_dropped_since_process_start",
-                    DroppedMessagesTimerTask.droppedMessages.incrementAndGet());
+            StdHttpServerHandler.addAdditionalStatus("msgs_dropped_since_last_reset",
+                    DroppedMessagesTimerTask.droppedMessages.get());
         }
 
     }
@@ -131,7 +130,7 @@ public class BeaconListenerHandler extends SimpleChannelInboundHandler<String> {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         LOG.error("Error during message handling", cause);
         KruxStdLib.STATSD.count("message_processed_error_all");
-        // cause.printStackTrace();
-        // ctx.close();
+//        cause.printStackTrace();
+//        ctx.close();
     }
 }
