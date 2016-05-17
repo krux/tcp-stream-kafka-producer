@@ -2,6 +2,7 @@ package com.krux.beacon.listener;
 
 import java.util.List;
 
+import io.netty.channel.ChannelOption;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +41,9 @@ public class BeaconListener implements Runnable {
         try {
             _b = new ServerBootstrap();
             _b.group(_bossGroup, _workerGroup).channel(NioServerSocketChannel.class)
-                    .childHandler(new BeaconListenerInitializer(_topics, _decoderFrameSize, _options));
+                    .childHandler(new BeaconListenerInitializer(_topics, _decoderFrameSize, _options))
+                    .option(ChannelOption.SO_BACKLOG, 128) // max length of queue of incoming connections
+                    .childOption(ChannelOption.SO_KEEPALIVE, true);
 
             _cf = _b.bind(_port).sync();
             _cf.channel().closeFuture().sync();

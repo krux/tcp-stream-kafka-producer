@@ -58,7 +58,7 @@ public class TestKafkaConnTimerTask extends TimerTask {
                     StdHttpServerHandler.setStatusCodeAndMessage(AppState.FAILURE, "Test message failed, listeners stopped");
                 } else {
                     TCPStreamListenerServer.SEND_TO_KAFKA = false;
-                    KruxStdLib.STATSD.count("listener_stopping_test_topic_failure");
+                    KruxStdLib.STATSD.count("listener_dropping_msg_test_topic_failure");
                     StdHttpServerHandler.setStatusCodeAndMessage(AppState.WARNING,
                             "Test message failed, listeners running but dropping messages");
                 }
