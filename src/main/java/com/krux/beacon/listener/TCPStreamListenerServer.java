@@ -114,6 +114,11 @@ public class TCPStreamListenerServer {
         }
 
         StdHttpServerHandler.addAdditionalStatus("client_id", options.valueOf("client.id"));
+        // set metadata broker list, required for test producer
+        String metadataBrokers = (String)options.valueOf("metadata.broker.list");
+        if (metadataBrokers != null) {
+            System.setProperty("metadata.broker.list", metadataBrokers);
+        }
 
         // start a timer that will check every N ms to see if test messages
         // can be sent to kafka. If so, then start our listeners
