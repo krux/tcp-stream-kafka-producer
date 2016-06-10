@@ -20,7 +20,7 @@ PACKAGE_VERSION=$VERSION~krux$( date -u +%Y%m%d%H%M )
 PACKAGE_NAME=$NAME
 
 ### Rename jar for packaging
-mv krux-tcp-stream-kafka-producer-$VERSION-full.jar krux-tcp-stream-kafka-producer-full.jar
+mv "${TARGET}/krux-tcp-stream-kafka-producer-$VERSION-full.jar" "${TARGET}/krux-tcp-stream-kafka-producer-full.jar"
 
 ### List of files to package
 FILES=krux-tcp-stream-kafka-producer-full.jar
