@@ -20,7 +20,7 @@ PACKAGE_VERSION=$VERSION~krux$( date -u +%Y%m%d%H%M )
 PACKAGE_NAME=$NAME
 
 ### List of files to package
-FILES=krux-tcp-stream-kafka-producer-$VERSION-full.jar
+FILES=krux-tcp-stream-kafka-producer-full.jar
 
 ### Where this package will be installed
 DEST_DIR="/usr/local/${NAME}/"
