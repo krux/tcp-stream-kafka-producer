@@ -19,8 +19,11 @@ VERSION=$(grep version pom.xml | head -1 | perl -pe 's/[^\d.]//g')
 PACKAGE_VERSION=$VERSION~krux$( date -u +%Y%m%d%H%M )
 PACKAGE_NAME=$NAME
 
+### Rename jar for packaging
+mv "${TARGET}/krux-tcp-stream-kafka-producer-$VERSION-full.jar" "${TARGET}/krux-tcp-stream-kafka-producer-full.jar"
+
 ### List of files to package
-FILES=krux-tcp-stream-kafka-producer-$VERSION-full.jar
+FILES=krux-tcp-stream-kafka-producer-full.jar
 
 ### Where this package will be installed
 DEST_DIR="/usr/local/${NAME}/"
