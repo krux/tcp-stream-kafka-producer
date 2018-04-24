@@ -1,7 +1,7 @@
-TCP Stream Kafka Producer
-==============================
+TCP Incoming Stream Kafka Producer
+==================================
 
-The Krux TCP [Kafka](http://kafka.apache.org) Producer does a very simple job: it takes a configurable list of TCP port/Kafka topic tuples on the command-line, and for each pair, it opens the TCP port, splits the incoming stream on newlines, and places the resultant chunks onto the configured Kafka topic(s).  By default, if/when the configured Kafka cluster becomes unavailable, the Stream Listener will automatically close its TCP port(s), and will reopen them again when the cluster becomes available.  This behavior can easily be overridden.  Like all of Krux' open-sourced Java libraries, it's built atop the [Krux Standard Java Library](https://github.com/krux/java-stdlib), and produces a bevy of useful usage statistics via [StatsD](https://github.com/etsy/statsd).
+The Krux TCP [Kafka](http://kafka.apache.org) Producer does a very simple job: it takes a configurable list of TCP port/Kafka topic tuples on the command-line, and for each pair, it listens on the TCP port, splits any incoming stream on newlines, and places the resultant chunks onto the configured Kafka topic(s).  By default, if/when the configured Kafka cluster becomes unavailable, the Stream Listener will automatically close its TCP port(s), and will reopen them again when the cluster becomes available.  This behavior can easily be overridden.  Like all of Krux' open-sourced Java libraries, it's built atop the [Krux Standard Java Library](https://github.com/krux/java-stdlib), and produces a bevy of useful usage statistics via [StatsD](https://github.com/etsy/statsd).
 
 Use
 ---
@@ -70,7 +70,7 @@ Option                                       Description
                                                host1:port1,host2:port2, and the list can be a subset  
                                                of brokers or a VIP pointing to a subset of brokers.   
                                                (default: localhost:9092)                              
---port.topic                                 The port->topic mappings (ex: 1234:topic1[,topic2])      
+--port.topic                                 The incoming port->topic mappings (ex: 1234:topic1[,topic2])      
                                                Specify multiple mappings with multiple cl options.    
                                                e.g.: --port.topic 1234:topic1[,topic2] --port.topic   
                                                4567:topic3[,topic4]                                   
